@@ -80,6 +80,8 @@ function startAnalytics() {
 
     function getClickType(link) {
       if (link.classList.contains('btn-report')) return 'report';
+      // The address opens in Google Maps for directions.
+      if (link.classList.contains('addr-link')) return 'directions';
       // The Share menu's email link writes to a friend, not to the listing.
       if (link.classList.contains('share-option')) return 'share_email';
       var href = link.getAttribute('href') || '';
