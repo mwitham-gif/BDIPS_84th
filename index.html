@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.googletagmanager.com; style-src 'self'; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://docs.google.com https://*.googleusercontent.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta name="description" content="Find local Santa Monica resources for food, housing, health, legal help, benefits, and family support.">
+<meta property="og:title" content="Santa Monica Resource Guide · Community Corp Santa Monica">
+<meta property="og:description" content="Find local Santa Monica resources for food, housing, health, legal help, benefits, and family support.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mwitham-gif.github.io/CCSM/">
+<meta property="og:image" content="https://mwitham-gif.github.io/CCSM/ccsm_logo_web.png">
+<meta property="og:image:width" content="1032">
+<meta property="og:image:height" content="603">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Santa Monica Resource Guide · Community Corp Santa Monica">
+<meta name="twitter:description" content="Find local Santa Monica resources for food, housing, health, legal help, benefits, and family support.">
+<meta name="twitter:image" content="https://mwitham-gif.github.io/CCSM/ccsm_logo_web.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#005eb8">
+<link rel="canonical" href="https://mwitham-gif.github.io/CCSM/">
+<title>Santa Monica Resource Guide · Community Corp Santa Monica</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FT2K5G6SYR"></script>
+<script src="analytics.js?v=13" defer></script>
+<link rel="stylesheet" href="styles.css?v=35">
+</head>
+<body>
+<a class="skip-link" href="#search">Skip to search</a>
+
+<header>
+  <div class="header-inner">
+    <div class="header-top">
+      <div class="header-brand">
+        <img src="ccsm_logo_web.png" alt="Community Corporation of Santa Monica" class="header-logo">
+        <h1 id="site-title">
+          Santa Monica Resource Guide
+          <span class="sub" id="site-subtitle">Food, rent, health care and more, close to home</span>
+        </h1>
+      </div>
+      <div class="header-tools">
+        <button class="text-size-btn" id="btn-text-size" type="button" aria-pressed="false" aria-label="Larger text" title="Larger text"><span aria-hidden="true">A<span class="text-size-plus">+</span></span></button>
+        <div class="lang-toggle" aria-label="Language">
+          <button class="active" data-lang="en" id="btn-en" aria-pressed="true">EN</button>
+          <button data-lang="es" id="btn-es" aria-pressed="false">ES</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="notice" id="status-notice" role="alert" aria-live="assertive">
+  <strong>Resources could not load.</strong> Please email Resident Services at <a href="mailto:help@communitycorp.org" data-track-name="CCSM Resident Services" data-track-category="Resident Services">help@communitycorp.org</a>.
+</div>
+
+<div class="notice" id="offline-notice" role="status" aria-live="polite"></div>
+
+<main>
+<div class="controls">
+  <div class="finder-card">
+    <div class="finder-head"><h2 class="finder-title" id="intro-title">What kind of help do you need today?</h2></div>
+    <div class="finder-section">
+      <label class="finder-label" for="search" id="finder-label-search">Search the directory</label>
+      <div class="finder-hint" id="finder-hint-search">Try food, rent, legal help, youth, a provider name, or an address.</div>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        <input type="search" id="search" placeholder="Search resources..." autocomplete="off" aria-describedby="finder-hint-search">
+        <button class="clear-search" id="clear-search" type="button" data-action="clear-search">Clear</button>
+        <kbd class="search-kbd" id="search-kbd" aria-hidden="true">/</kbd>
+      </div>
+    </div>
+    <div class="finder-section">
+      <div class="finder-label" id="finder-label-filters">Explore all support areas</div>
+      <div class="filters" id="filters"></div>
+    </div>
+  </div>
+</div>
+
+<div class="results-row">
+  <div class="results-info" id="results-info" role="status" aria-live="polite" aria-atomic="true"></div>
+  <p class="call-ahead" id="call-ahead">Hours and services can change. Call ahead to check.</p>
+</div>
+<div class="results-context" id="results-context"></div>
+<aside class="safety-tip" id="safety-tip" aria-label="Browsing safely" hidden></aside>
+<div class="grid" id="grid"></div>
+<p class="grid-disclaimer" id="grid-disclaimer">Hours, services, and eligibility can change. Please call the agency before visiting to make sure they can help you.</p>
+<div class="toast" id="toast" aria-live="polite"></div>
+</main>
+
+<button class="jump-filters" id="jump-filters" type="button" tabindex="-1" aria-hidden="true">
+  <svg class="jump-filters-search" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+  <span class="jump-filters-label" id="jump-filters-label"></span>
+  <svg class="jump-filters-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
+</button>
+
+<button class="quick-exit" id="quick-exit" type="button" title="Leave this site now" hidden>
+  <span class="quick-exit-badge"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg></span>
+  <span id="quick-exit-label">Quick exit</span>
+</button>
+
+<footer>
+  <div id="footer-title">Community Corporation of Santa Monica · Resident Services</div>
+  <div id="footer-contact" class="footer-line">Need help using this directory? Email <a href="mailto:help@communitycorp.org" data-track-name="CCSM Resident Services" data-track-category="Resident Services">help@communitycorp.org</a></div>
+</footer>
+
+<div class="print-sheet" id="print-sheet"></div>
+
+<script src="app.js?v=34" defer></script>
+</body>
+</html>
