@@ -1,11 +1,12 @@
   :root {
-    /* Brand: the City of Santa Monica logo blue. Reserved for things you can
-       click, plus the header and footer. */
-    --ocean: #005eb8;
-    --ocean-dark: #004a93;
-    --ocean-deep: #003a73;
-    --sun: #c97316;
-    --sun-logo: #ffb81c; /* logo yellow: accents only, never behind text */
+    /* Brand: the BDIPS logo blue (#00a2f8 on bdips.org), darkened so white
+       text on it passes WCAG AA (5.7:1). Reserved for things you can click,
+       plus the header and footer. */
+    --ocean: #0069b4;
+    --ocean-dark: #00538f;
+    --ocean-deep: #003f6e;
+    /* The BDIPS logo green (#008000, 5.1:1 on white). Accent line only. */
+    --sun: #008000;
 
     /* Text: four levels, darkest to lightest. All pass WCAG AA (4.5:1) on
        white, the cream page and the pale card panels. */
@@ -85,14 +86,14 @@
 
   /* ── HEADER ── */
   header {
-    background: linear-gradient(135deg, #075da9 0%, #004a93 100%);
+    background: linear-gradient(135deg, #0069b4 0%, #00538f 100%);
     color: white;
     padding: 0;
     position: sticky;
     top: 0;
     z-index: 100;
     border-bottom: 1px solid rgba(255,255,255,0.16);
-    box-shadow: 0 10px 24px rgba(0,58,115,0.18);
+    box-shadow: 0 10px 24px rgba(0,63,110,0.18);
   }
 
   .header-inner {
@@ -139,7 +140,10 @@
     height: 44px;
     width: auto;
     display: block;
-    filter: brightness(0) invert(1);
+    /* The two-color logo sits on a white chip so it keeps its brand colors. */
+    background: #ffffff;
+    padding: 4px 8px;
+    border-radius: 8px;
     margin-bottom: 6px;
   }
 
@@ -334,7 +338,7 @@
 
   .search-wrap input:focus {
     border-color: var(--ocean);
-    box-shadow: 0 0 0 4px rgba(0,94,184,0.12), 0 3px 0 rgba(23,52,79,0.03);
+    box-shadow: 0 0 0 4px rgba(0,105,180,0.12), 0 3px 0 rgba(23,52,79,0.03);
   }
 
   .search-icon {
@@ -416,7 +420,7 @@
     background: #e7f1fb;
     border-color: #a9c9e8;
     color: var(--ocean-dark);
-    box-shadow: inset 0 0 0 1px rgba(0,94,184,0.05);
+    box-shadow: inset 0 0 0 1px rgba(0,105,180,0.05);
   }
 
   .filter-btn.active:hover {
@@ -926,7 +930,7 @@
   .btn-call {
     background: var(--ocean);
     color: #ffffff;
-    box-shadow: 0 3px 0 var(--ocean-deep), 0 8px 16px rgba(0,94,184,0.16);
+    box-shadow: 0 3px 0 var(--ocean-deep), 0 8px 16px rgba(0,105,180,0.16);
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -1216,7 +1220,7 @@
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 6px 16px rgba(0,94,184,0.07);
+    box-shadow: 0 6px 16px rgba(0,105,180,0.07);
   }
 
   .load-more-btn:hover {
@@ -2089,7 +2093,7 @@
     }
 
     .ps-item {
-      --ps-cat: #005eb8;
+      --ps-cat: #0069b4;
       break-inside: avoid;
       page-break-inside: avoid;
       margin: 0 0 8pt;

@@ -1,13 +1,21 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// UPDATE THIS — staff inbox that receives "Report outdated info" emails
+// CONFIG: every value that belongs to the site owner. When this guide moves to
+// another organization, change these (and see TRANSFER.md for the full list).
 // ─────────────────────────────────────────────────────────────────────────────
-const REPORT_EMAIL = 'help@communitycorp.org';
 
-// The Resident Services email shown when the sheet cannot load, and in the
-// footer, is counted as a resource_click like any listing's Call button.
-const RESIDENT_SERVICES_TRACK = 'data-track-name="CCSM Resident Services" data-track-category="Resident Services"';
+// Staff inbox that receives "Report outdated info" emails.
+const REPORT_EMAIL = 'b.overton@bdips.org';
 
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSbAtpa7kK10yL2QtdLHRx9q2VbuEIPNG6S2uMbWhQ1GsLGoYA3NqFAlp_E_w8xUGRdcLxT4V3gbiJD/pub?output=csv';
+// The published Google Sheet (File > Share > Publish to web > CSV link).
+// TODO: paste the published CSV link here once the owner publishes the sheet.
+// While this is blank the site makes no request and shows its "could not load"
+// message, so it never shows demo data.
+const SHEET_URL = '';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// END OF CONFIG
+// ─────────────────────────────────────────────────────────────────────────────
+
 const MAX_CSV_BYTES = 500000;
 
 // Recommended Google Sheet columns:
@@ -26,8 +34,8 @@ const T = {
     introTitle: 'What kind of help do you need today?',
     introCopy: 'Search by keyword or choose a support area, then call or visit a provider directly for current details.',
     finderLabelSearch: 'Search the directory',
-    finderHintSearch: 'Try food, rent, legal help, youth, a provider name, or an address.',
-    searchWide: 'Try food, rent, legal help, youth, a provider name, or an address',
+    finderHintSearch: 'Try food, legal help, work, health care, a provider name, or an address.',
+    searchWide: 'Try food, legal help, work, health care, a provider name, or an address',
     finderLabelFilters: 'Explore all support areas',
     activeCategory: 'Need',
     activeSearch: 'Search',
@@ -53,14 +61,13 @@ const T = {
     address: 'Address',
     notes: 'Notes',
     loading: 'Loading resources...',
-    loadErrorNotice: 'Resources could not load. Please email Resident Services at',
+    loadErrorNotice: 'Resources could not load. Please try again later.',
     loadErrorTitle: 'We are having trouble loading resources',
-    loadErrorBody: 'Please check your connection and try again. If you need help now, email Resident Services.',
+    loadErrorBody: 'Please check your connection and try again later.',
     retry: 'Try again',
-    siteTitle: 'Santa Monica Resource Guide',
-    siteSub: 'Food, rent, health care and more, close to home',
-    footerTitle: 'Community Corporation of Santa Monica · Resident Services',
-    footerContact: 'Need help using this directory? Email',
+    siteTitle: 'BDIPS Resource Guide',
+    siteSub: 'Food, health care, work, housing and more, near 84th Street',
+    footerTitle: 'Better Days Integrated Programs (BDIPS)',
     callAhead: 'Hours and services can change. Call ahead to check.',
     gridDisclaimer: 'Hours, services, and eligibility can change. Please call the agency before visiting to make sure they can help you.',
     reportBtn: 'Report incorrect information',
@@ -76,7 +83,6 @@ const T = {
     printScanTitle: 'Scan for the full guide',
     printScanBody: 'Always up to date, in English and Spanish.',
     printCallFirst: 'Please call before visiting. Hours, services and eligibility can change.',
-    printHelp: 'Questions? Resident Services: help@communitycorp.org.',
     textLarger: 'Larger text',
     textSmaller: 'Normal text size',
     safetyTitle: 'Browsing safely',
@@ -96,19 +102,19 @@ const T = {
     resourcesCopied: 'Resources copied',
     copyPrompt: 'Copy this link:',
     shareBack: 'Back to full directory',
-    shareEyebrow: 'Shared from the Santa Monica Resource Guide',
+    shareEyebrow: 'Shared from the BDIPS Resource Guide',
     shareHeading: 'A resource someone wanted to share with you',
     shareSubheading: 'Review the details below, then call, visit the website, or pass this resource along to someone else.',
-    shareMetaCommunity: 'Santa Monica resource guide',
+    shareMetaCommunity: 'BDIPS resource guide',
     shareMetaUpdated: 'Provider details may change',
     shareMissingTitle: 'This shared resource may have moved',
     shareMissingBody: 'The listing may have been renamed or removed. You can still search the full directory for current support options.',
     searchDirectory: 'Search the directory',
     reportSubject: name => `Outdated listing: ${name}`,
     reportBody: name =>
-`Hi CCSM,
+`Hi BDIPS,
 
-I noticed some information for "${name}" in the CCSM Santa Monica Resource Guide may be outdated.
+I noticed some information for "${name}" in the BDIPS Resource Guide may be outdated.
 
 𝗪𝗵𝗮𝘁 𝘀𝗵𝗼𝘂𝗹𝗱 𝗯𝗲 𝘂𝗽𝗱𝗮𝘁𝗲𝗱:
 
@@ -129,8 +135,8 @@ Thank you for keeping this resource up to date!`,
     introTitle: '¿Qué tipo de ayuda necesita hoy?',
     introCopy: 'Busque por palabra clave o elija un área de apoyo, y luego llame o visite el sitio web del proveedor para confirmar detalles.',
     finderLabelSearch: 'Buscar en el directorio',
-    finderHintSearch: 'Pruebe comida, renta, ayuda legal, juventud, nombre de proveedor o dirección.',
-    searchWide: 'Pruebe comida, renta, ayuda legal, jóvenes, un proveedor o una dirección',
+    finderHintSearch: 'Pruebe comida, ayuda legal, empleo, salud, nombre de proveedor o dirección.',
+    searchWide: 'Pruebe comida, ayuda legal, empleo, salud, un proveedor o una dirección',
     finderLabelFilters: 'Explorar todas las áreas de apoyo',
     activeCategory: 'Necesidad',
     activeSearch: 'Búsqueda',
@@ -156,14 +162,13 @@ Thank you for keeping this resource up to date!`,
     address: 'Dirección',
     notes: 'Notas',
     loading: 'Cargando recursos...',
-    loadErrorNotice: 'No se pudieron cargar los recursos. Envíe un correo a Servicios para Residentes a',
+    loadErrorNotice: 'No se pudieron cargar los recursos. Inténtelo de nuevo más tarde.',
     loadErrorTitle: 'Tenemos problemas para cargar los recursos',
-    loadErrorBody: 'Revise su conexión e inténtelo de nuevo. Si necesita ayuda ahora, escriba a Servicios para Residentes.',
+    loadErrorBody: 'Revise su conexión e inténtelo de nuevo más tarde.',
     retry: 'Intentar de nuevo',
-    siteTitle: 'Guía de Recursos de Santa Mónica',
-    siteSub: 'Comida, renta, salud y más, cerca de casa',
-    footerTitle: 'Community Corporation of Santa Monica · Servicios para Residentes',
-    footerContact: '¿Necesita ayuda para usar este directorio? Escriba a',
+    siteTitle: 'Guía de Recursos de BDIPS',
+    siteSub: 'Comida, salud, empleo, vivienda y más, cerca de la calle 84',
+    footerTitle: 'Better Days Integrated Programs (BDIPS)',
     callAhead: 'Los horarios y servicios pueden cambiar. Llame antes de ir.',
     gridDisclaimer: 'Los horarios, servicios y requisitos pueden cambiar. Por favor llame a la agencia antes de visitar para confirmar que pueden ayudarle.',
     reportBtn: 'Reportar información incorrecta',
@@ -179,7 +184,6 @@ Thank you for keeping this resource up to date!`,
     printScanTitle: 'Escanee para ver la guía completa',
     printScanBody: 'Siempre actualizada, en inglés y español.',
     printCallFirst: 'Llame antes de visitar. Los horarios, servicios y requisitos pueden cambiar.',
-    printHelp: '¿Preguntas? Servicios para Residentes: help@communitycorp.org.',
     textLarger: 'Letra más grande',
     textSmaller: 'Tamaño de letra normal',
     safetyTitle: 'Navegar de forma segura',
@@ -199,19 +203,19 @@ Thank you for keeping this resource up to date!`,
     resourcesCopied: 'Recursos copiados',
     copyPrompt: 'Copie este enlace:',
     shareBack: 'Volver al directorio completo',
-    shareEyebrow: 'Compartido desde la Guía de Recursos de Santa Mónica',
+    shareEyebrow: 'Compartido desde la Guía de Recursos de BDIPS',
     shareHeading: 'Un recurso que alguien quiso compartir con usted',
     shareSubheading: 'Revise los detalles abajo y luego llame, visite el sitio web o comparta este recurso con otra persona.',
-    shareMetaCommunity: 'Guía de recursos de Santa Mónica',
+    shareMetaCommunity: 'Guía de recursos de BDIPS',
     shareMetaUpdated: 'Los detalles del proveedor pueden cambiar',
     shareMissingTitle: 'Este recurso compartido puede haber cambiado',
     shareMissingBody: 'Es posible que el listado haya cambiado de nombre o se haya eliminado. Todavía puede buscar en el directorio completo opciones de apoyo actuales.',
     searchDirectory: 'Buscar en el directorio',
     reportSubject: name => `Información desactualizada: ${name}`,
     reportBody: name =>
-`Hola,
+`Hola, equipo de BDIPS:
 
-Noté que la información de "${name}" en la Guía de Recursos de Santa Mónica de CCSM puede estar desactualizada.
+Noté que la información de "${name}" en la Guía de Recursos de BDIPS puede estar desactualizada.
 
 𝗤𝘂é 𝗱𝗲𝗯𝗲 𝗮𝗰𝘁𝘂𝗮𝗹𝗶𝘇𝗮𝗿𝘀𝗲:
 
@@ -672,8 +676,8 @@ async function copyCategoryResources() {
 // the live guide, so it works on paper, in a PDF, or handed across a desk.
 // styles.css shows only that sheet while body has .printing-sheet; a normal
 // Ctrl+P is unaffected.
-const PRINT_QR_SRC = 'flyer/ccsm-qr.svg';
-const PRINT_LOGO_SRC = 'ccsm_logo_web.png';
+const PRINT_QR_SRC = 'flyer/bdips-qr.svg';
+const PRINT_LOGO_SRC = 'bdips_logo_web.png';
 
 // Fetch the QR code ahead of time so it is ready the moment Print is tapped.
 [PRINT_QR_SRC, PRINT_LOGO_SRC].forEach(src => { new Image().src = src; });
@@ -715,7 +719,7 @@ async function printResources(list, { title, eyebrow, lede = '', single = false 
 
   sheet.innerHTML = `
     <div class="ps-top">
-      <img class="ps-logo" src="${PRINT_LOGO_SRC}" alt="Community Corporation of Santa Monica">
+      <img class="ps-logo" src="${PRINT_LOGO_SRC}" alt="Better Days Integrated Programs">
       <div class="ps-brand">
         <div class="ps-brand-name">${escapeHTML(T[lang].siteTitle)}</div>
         <div class="ps-brand-sub">${escapeHTML(T[lang].footerTitle)}</div>
@@ -736,7 +740,7 @@ async function printResources(list, { title, eyebrow, lede = '', single = false 
         <div class="ps-foot-title">${escapeHTML(T[lang].printScanTitle)}</div>
         <div>${escapeHTML(T[lang].printScanBody)}</div>
         <div class="ps-foot-url">${escapeHTML(siteUrl)}</div>
-        <div class="ps-foot-help">${escapeHTML(T[lang].printHelp)} ${escapeHTML(T[lang].printCallFirst)}</div>
+        <div class="ps-foot-help">${escapeHTML(T[lang].printCallFirst)}</div>
       </div>
     </div>`;
 
@@ -885,7 +889,7 @@ function updateJumpButton() {
 // Larger text (the A+ button in the header). Scales the whole page by 20%,
 // like a browser zoom, so every part grows together. The choice is
 // remembered on this device only; if storage is blocked it simply resets.
-const TEXT_SIZE_KEY = 'ccsm-large-text';
+const TEXT_SIZE_KEY = 'bdips-large-text';
 
 function setLargeText(on, { save = true } = {}) {
   document.documentElement.classList.toggle('text-large', on);
@@ -1275,7 +1279,7 @@ function updateStatusNotice(show = false) {
   const notice = document.getElementById('status-notice');
   if (!notice) return;
 
-  notice.innerHTML = `<strong>${escapeHTML(T[lang].loadErrorNotice)}</strong> <a href="mailto:help@communitycorp.org" ${RESIDENT_SERVICES_TRACK}>help@communitycorp.org</a>.`;
+  notice.innerHTML = `<strong>${escapeHTML(T[lang].loadErrorNotice)}</strong>`;
   notice.classList.toggle('show', show);
 }
 
@@ -1296,7 +1300,6 @@ function renderLoadError() {
     <div class="empty-icon">!</div>
     <h3>${escapeHTML(T[lang].loadErrorTitle)}</h3>
     <p>${escapeHTML(T[lang].loadErrorBody)}</p>
-    <a class="empty-action empty-link" href="mailto:help@communitycorp.org" ${RESIDENT_SERVICES_TRACK}>help@communitycorp.org</a>
     <button class="empty-action" type="button" data-action="retry-load">${escapeHTML(T[lang].retry)}</button>
   </div>`);
 }
@@ -1872,7 +1875,6 @@ function setLang(l) {
   updateStatusNotice(Boolean(notice && notice.classList.contains('show')));
 
   setText('footer-title', T[l].footerTitle);
-  setHTML('footer-contact', `${escapeHTML(T[l].footerContact)} <a href="mailto:help@communitycorp.org" ${RESIDENT_SERVICES_TRACK}>help@communitycorp.org</a>`);
   setText('call-ahead', T[l].callAhead);
   setText('grid-disclaimer', T[l].gridDisclaimer);
   updateOfflineNotice();
