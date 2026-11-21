@@ -4,7 +4,7 @@ Open items before the BDIPS Resource Guide is ready for residents. Owner decisio
 
 ## Blocking
 
-- [ ] **Published sheet link (owner).** The BDIPS Google Sheet exists (header row only). Publish it to the web as CSV (see README, "Publishing the sheet") and send the link. It goes into `SHEET_URL` in the CONFIG block at the top of `app.js`. Until then the site shows its "could not load" message.
+- [x] **Published sheet link.** Done: the published CSV link is in `SHEET_URL` in the CONFIG block at the top of `app.js`. Until the sheet has at least one listing, the site shows its "could not load" message.
 - [ ] **Area-specific listings.** The sheet has no listings yet. Decide who gathers them and how (for example: BDIPS staff nominate services, a volunteer calls each provider to confirm hours and eligibility, and each row is checked against the provider's own website). Listings must be specific to the 84th Street area (ZIP 90003 and nearby). Nothing is copied from other sites' directories.
 - [ ] **Enable GitHub Pages (owner).** Settings > Pages > Deploy from a branch > `main` / root. Not done by code. After it is on, open the live address and confirm it loads.
 - [ ] **Scan the QR code (owner).** After Pages is on, scan `flyer/bdips-qr.png` with a phone and confirm it opens the live site.

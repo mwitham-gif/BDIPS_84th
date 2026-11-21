@@ -36,7 +36,7 @@ There is no backend, no build step, no framework and no external fonts. It is st
 
 ## Where the data comes from
 
-Everything shown to residents comes from the published Google Sheet. Its link is `SHEET_URL` in the **CONFIG block at the top of `app.js`**. It is blank until the owner publishes the sheet, and while blank the site makes no request and shows the "could not load" message. Do not put Google file IDs or any real sheet link in the repository except the published CSV link the owner sends.
+Everything shown to residents comes from the published Google Sheet. Its link is `SHEET_URL` in the **CONFIG block at the top of `app.js`**. The sheet is published to the web as CSV. With no listings the site shows the "could not load" message, and if `SHEET_URL` is ever blank it makes no request. Never put the sheet's edit link or file ID in the repository; only the published CSV link belongs here.
 
 Sheet columns (row 1 headers): `name`, `name_es`, `category`, `description`, `description_es`, `address`, `address_es`, `phone`, `website`, `hours`, `hours_es`, `notes`, `notes_es`, `tags`, `tags_es`. Only `name` is required. Spanish columns fall back to English when blank.
 
@@ -48,7 +48,7 @@ Listings must be specific to the 84th Street area (ZIP 90003 and nearby). They a
 
 All owner-specific values are in labeled CONFIG blocks (see `TRANSFER.md`):
 
-- `app.js`: `SHEET_URL` (blank, TODO) and `REPORT_EMAIL` (`b.overton@bdips.org`).
+- `app.js`: `SHEET_URL` (the published CSV link) and `REPORT_EMAIL` (`b.overton@bdips.org`).
 - `analytics.js`: `GA_MEASUREMENT_ID` (blank, so **no analytics is sent**).
 - `tools/link-checker.gs`: `REPORT_TO` and `GUIDE_URL`.
 - Site address: `https://mwitham-gif.github.io/BDIPS_84th/` (canonical, og tags, QR code, link checker).
