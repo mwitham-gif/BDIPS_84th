@@ -369,6 +369,17 @@ async function browserChecks() {
     await page.click('[data-share-menu="category"]');
     await page.click('[data-action="print-category"]');
     await page.waitForFunction(() => window.__printed, null, { timeout: 5000 }).catch(() => {});
+    // A street address opens in Google Maps; other "where" text stays plain.
+    await page.fill('#search', '');
+    await page.waitForTimeout(200);
+    const where = await page.evaluate(() => Array.from(document.querySelectorAll('.card')).map(card => {
+      const link = card.querySelector('.addr-link');
+      const text = (card.querySelector('.card-detail-text') || {}).textContent || '';
+      return { text: text.trim(), href: link && link.getAttribute('href'), rel: link && link.rel, target: link && link.target };
+    }));
+    const mapped = where.filter(w => w.href);
+    check('street addresses are links to Google Maps', mapped.length > 0 && mapped.every(w => /^https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=/.test(w.href) && /noopener/.test(w.rel) && /noreferrer/.test(w.rel) && w.target === '_blank'), JSON.stringify(mapped.slice(0, 2)));
+    check('"Online" and phone-only places are not map links', where.filter(w => /^(Online|En línea|Los Angeles County – phone only|Condado de Los Ángeles)/.test(w.text)).every(w => !w.href));
     check('Print or save as PDF builds the printout', (await page.locator('#print-sheet .ps-item').count()) > 0);
 
     // Every resource link sends a name, category, click type and link, in

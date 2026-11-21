@@ -49,6 +49,7 @@ const T = {
     detailsLabel: 'Key details',
     contactLabel: 'Contact',
     addressLabel: 'Where',
+    openInMaps: 'Open in Google Maps',
     hoursLabel: 'When',
     notesLabel: 'Details',
     noContact: 'Contact details unavailable',
@@ -150,6 +151,7 @@ Thank you for keeping this resource up to date!`,
     detailsLabel: 'Detalles clave',
     contactLabel: 'Contacto',
     addressLabel: 'Dónde',
+    openInMaps: 'Abrir en Google Maps',
     hoursLabel: 'Cuándo',
     notesLabel: 'Detalles',
     noContact: 'Datos de contacto no disponibles',
@@ -1170,6 +1172,7 @@ function renderResourceCard(resource, i, query = '') {
   const website = normalizeWebsiteUrl(getField(resource, 'website'));
   const address = getLocalizedValue(resource, 'address');
   const hours = getLocalizedValue(resource, 'hours');
+  const mapsHref = getMapsHref(address);
   const categoryClass = getCategoryClass(cat);
   const reportHref = getReportHref(resource);
   const shareEmailHref = getShareEmailHref(resource);
@@ -1205,7 +1208,7 @@ function renderResourceCard(resource, i, query = '') {
       ` : ''}
       <div class="card-details">
         <div class="card-section-label">${escapeHTML(T[lang].detailsLabel)}</div>
-        ${address ? `<div class="card-detail"><span class="icon"></span><span class="card-detail-content"><span class="card-detail-label">${escapeHTML(T[lang].addressLabel)}</span><span class="card-detail-text">${highlightMatch(address, query)}</span></span></div>` : ''}
+        ${address ? `<div class="card-detail"><span class="icon"></span><span class="card-detail-content"><span class="card-detail-label">${escapeHTML(T[lang].addressLabel)}</span><span class="card-detail-text">${mapsHref ? `<a class="addr-link" href="${escapeAttr(mapsHref)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(`${address} – ${T[lang].openInMaps}`)}" title="${escapeAttr(T[lang].openInMaps)}">${highlightMatch(address, query)}</a>` : highlightMatch(address, query)}</span></span></div>` : ''}
         ${hours   ? `<div class="card-detail"><span class="icon"></span><span class="card-detail-content"><span class="card-detail-label">${escapeHTML(T[lang].hoursLabel)}</span><span class="card-detail-text">${highlightMatch(hours, query)}</span></span></div>` : ''}
         ${notes   ? `<div class="card-detail"><span class="icon"></span><span class="card-detail-content"><span class="card-detail-label">${escapeHTML(T[lang].notesLabel)}</span><span class="card-detail-text ${hasLongNotes && !notesExpanded ? 'compact' : ''}">${highlightMatch(notes, query)}</span>${hasLongNotes ? `<button class="card-more" type="button" data-toggle-section="notes" data-resource-name="${escapeAttr(encodedName)}">${escapeHTML(notesExpanded ? T[lang].showLess : T[lang].showMore)}</button>` : ''}</span></div>` : ''}
       </div>
@@ -1657,6 +1660,16 @@ function highlightMatch(value, query) {
     last = match.index + match[0].length;
   }
   return html + escapeHTML(text.slice(last));
+}
+
+// A street address (number first, ZIP code last) opens in Google Maps in a new
+// tab. Cells like "Phone and online" or "South Los Angeles" have nothing to map
+// and stay plain text. rel=noreferrer keeps this guide's address out of the
+// request Google receives.
+function getMapsHref(address) {
+  const clean = String(address).replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!/^\d+\S*\s.*\b9\d{4}\b/.test(clean)) return '';
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clean)}`;
 }
 
 function normalizePhoneHref(phone) {

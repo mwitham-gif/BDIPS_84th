@@ -866,6 +866,18 @@
     color: var(--text-body);
   }
 
+  /* The address opens in Google Maps. Blue and underlined, like other links. */
+  .card-detail-text a.addr-link {
+    color: var(--ocean);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    overflow-wrap: anywhere;
+  }
+
+  .card-detail-text a.addr-link:hover {
+    color: var(--ocean-dark);
+  }
+
   .card-detail-text.compact {
     display: -webkit-box;
     -webkit-line-clamp: 2;
