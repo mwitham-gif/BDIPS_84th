@@ -1,15 +1,15 @@
 /**
- * Santa Monica Resource Guide — monthly broken-link check.
+ * BDIPS Resource Guide — monthly broken-link check.
  *
  * Runs inside the resource Google Sheet (Extensions > Apps Script), visits
  * every website in the sheet once a month, and emails a short report to
- * help@communitycorp.org. Setup steps are in the README, "Monthly link check".
+ * b.overton@bdips.org. Setup steps are in the README, "Monthly link check".
  *
  * Nothing here changes the sheet. It only reads it and sends one email.
  */
 
-const REPORT_TO = 'help@communitycorp.org';
-const GUIDE_URL = 'https://mwitham-gif.github.io/CCSM/';
+const REPORT_TO = 'b.overton@bdips.org';
+const GUIDE_URL = 'https://mwitham-gif.github.io/BDIPS_84th/';
 
 // Run this once by hand (select it above, then click Run) to schedule the
 // check for the 1st of every month, around 8am. Running it again replaces
@@ -49,7 +49,7 @@ function checkLinks() {
   });
 
   const lines = [
-    `Monthly link check for the Santa Monica Resource Guide: ${checked} websites checked.`,
+    `Monthly link check for the BDIPS Resource Guide: ${checked} websites checked.`,
     '',
   ];
   if (broken.length) {

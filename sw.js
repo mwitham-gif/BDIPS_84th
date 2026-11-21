@@ -10,7 +10,7 @@
 // Google Analytics and everything else pass straight through, untouched.
 //
 // Bump CACHE when this file changes in a way that should drop old copies.
-const CACHE = 'ccsm-v1';
+const CACHE = 'bdips-v1';
 const SHEET_KEY = 'sheet.csv';
 const SHEET_TIMEOUT_MS = 6000;
 const SCOPE_PATH = new URL('./', self.location).pathname;
@@ -23,13 +23,13 @@ const SHELL = [
   'app.js',
   'analytics.js',
   'styles.css',
-  'ccsm_logo_web.png',
+  'bdips_logo_web.png',
   'favicon-32.png',
   'apple-touch-icon.png',
   'icon-192.png',
   'icon-512.png',
   'manifest.webmanifest',
-  'flyer/ccsm-qr.svg',
+  'flyer/bdips-qr.svg',
 ];
 
 self.addEventListener('install', event => {

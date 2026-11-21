@@ -1,4 +1,4 @@
-// Safety checks for the Santa Monica Resource Guide.
+// Safety checks for the BDIPS Resource Guide.
 //
 // Runs on every push and pull request (.github/workflows/checks.yml), and
 // locally with:  npm install --no-save playwright@1.56.1 && node tests/check.cjs
@@ -15,6 +15,8 @@ const http = require('http');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
+// The ID that ships in analytics.js ('' = analytics off).
+const SHIPPED_GA_ID = (fs.readFileSync(path.join(ROOT, 'analytics.js'), 'utf8').match(/var GA_MEASUREMENT_ID = '([^']*)';/) || [, null])[1];
 const failures = [];
 let passes = 0;
 
@@ -66,9 +68,11 @@ function staticChecks() {
   check('index.html has no inline style attributes', !/\sstyle\s*=/i.test(html));
   check('index.html has no javascript: links', !/javascript:/i.test(html));
 
-  const externalScripts = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/gi)].map(m => m[1]).filter(src => /^https?:/i.test(src));
-  check('only the analytics loader is loaded from another site',
-    externalScripts.every(src => src.startsWith('https://www.googletagmanager.com/gtag/js')), externalScripts.join(', '));
+  const externalScripts = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/gi)].map(m => m[1]).filter(src => /^(https?:)?\/\//i.test(src));
+  check('index.html loads no script from another site (analytics adds its own loader only when an ID is set)', externalScripts.length === 0, externalScripts.join(', '));
+  const analyticsSource = read('analytics.js');
+  const loaderUrls = [...analyticsSource.matchAll(/https?:\/\/[^'"\s)]+/g)].map(m => m[0]).filter(url => /\.js\b|gtag/.test(url));
+  check('analytics.js loads only the Google gtag.js loader', loaderUrls.length > 0 && loaderUrls.every(url => url.startsWith('https://www.googletagmanager.com/gtag/js')), loaderUrls.join(', '));
 
   const localRefs = [...html.matchAll(/(?:src|href)="([^"#:]+?)(?:\?v=\d+)?"/g)].map(m => m[1]).filter(ref => !ref.startsWith('/') && ref.includes('.'));
   const missing = localRefs.filter(ref => !fs.existsSync(path.join(ROOT, ref)));
@@ -81,13 +85,47 @@ function staticChecks() {
 
   const app = read('app.js');
   check('website links are limited to http and https', /function normalizeWebsiteUrl[\s\S]*?\^https\?:\\\/\\\//.test(app));
-  check('analytics reports to the Santa Monica property only',
-    html.includes('gtag/js?id=G-FT2K5G6SYR') && /gtag\('config', 'G-FT2K5G6SYR'/.test(read('analytics.js')) && !/G-S3BPY8ZED8/.test(html + read('analytics.js')));
-  check('report emails go to help@communitycorp.org', /const REPORT_EMAIL = 'help@communitycorp\.org';/.test(app));
+  check('the GA4 ID is blank (analytics off) or a G- measurement ID', /^G-[A-Z0-9]{6,12}$|^$/.test(SHIPPED_GA_ID), JSON.stringify(SHIPPED_GA_ID));
+  check('index.html has no static analytics tag or ID', !/gtag|googletagmanager\.com\/gtag|G-[A-Z0-9]{8,}/.test(html.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, '')));
+  check('report emails go to b.overton@bdips.org', /const REPORT_EMAIL = 'b\.overton@bdips\.org';/.test(app));
+  check('the link checker reports to b.overton@bdips.org and names this site', /const REPORT_TO = 'b\.overton@bdips\.org';/.test(read('tools/link-checker.gs')) && /const GUIDE_URL = 'https:\/\/mwitham-gif\.github\.io\/BDIPS_84th\/';/.test(read('tools/link-checker.gs')));
+  check('the page names this site in its canonical, og:url and og:image', ['rel="canonical" href', 'property="og:url" content', 'property="og:image" content'].every(key => new RegExp(key + '="https://mwitham-gif\\.github\\.io/BDIPS_84th/').test(html)));
+  check('no email address is shown to visitors (no mailto: in the page or its scripts)', !/mailto:\s*[a-z]/i.test(html) && !/href="mailto:[^$]/.test(app) && !/footer-contact/.test(html + app));
+
+  // No other site's analytics ID, and no leftover names from the site this was copied from.
+  const FORBIDDEN_IDS = ['G-FT2K5G6SYR', 'G-S3BPY8ZED8'];
+  const LEFTOVER = /ccsm|santa monica|santa m[oó]nica|communitycorp|community corp|\b238\b/i;
+  const skipForIds = new Set(['tests/check.cjs', 'CLAUDE.md', 'TRANSFER.md']);
+  const skipForNames = new Set(['tests/check.cjs']);
+  const idHits = [];
+  const nameHits = [];
+  for (const file of listTextFiles(ROOT)) {
+    const rel = path.relative(ROOT, file).split(path.sep).join('/');
+    const text = fs.readFileSync(file, 'utf8');
+    if (!skipForIds.has(rel) && FORBIDDEN_IDS.some(id => text.includes(id))) idHits.push(rel);
+    if (!skipForNames.has(rel) && LEFTOVER.test(text)) nameHits.push(rel);
+  }
+  check('no analytics ID from another site appears in the repository', idHits.length === 0, idHits.join(', '));
+  check('no leftover copied-site names, addresses or street numbers', nameHits.length === 0, nameHits.join(', '));
+}
+
+function listTextFiles(dir) {
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (['.git', 'node_modules'].includes(entry.name)) continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...listTextFiles(full));
+    else if (/\.(html|js|cjs|css|md|csv|svg|webmanifest|gs|yml|json|txt)$/i.test(entry.name)) out.push(full);
+  }
+  return out;
 }
 
 // The one tab and GA4 page title, whatever the view.
-const SITE_TITLE = 'Santa Monica Resource Guide · Community Corp Santa Monica';
+const SITE_TITLE = 'Resource Guide · Better Days Integrated Programs';
+
+// Analytics checks run against a made-up stub ID, injected into analytics.js
+// by the browser test only. The shipped file keeps its own (blank) ID.
+const TEST_GA_ID = 'G-TESTSTUB01';
 
 // ── Part 2: browser checks ────────────────────────────────────────────────
 const TYPES = { html: 'text/html', js: 'text/javascript', css: 'text/css', png: 'image/png', svg: 'image/svg+xml', webmanifest: 'application/manifest+json', csv: 'text/csv' };
@@ -95,7 +133,7 @@ const TYPES = { html: 'text/html', js: 'text/javascript', css: 'text/css', png: 
 function startServer() {
   const server = http.createServer((req, res) => {
     const url = new URL(req.url, 'http://localhost');
-    let file = decodeURIComponent(url.pathname.replace(/^\/CCSM\/?/, ''));
+    let file = decodeURIComponent(url.pathname.replace(/^\/BDIPS_84th\/?/, ''));
     if (!file) file = 'index.html';
     const full = path.join(ROOT, file);
     if (!full.startsWith(ROOT) || !fs.existsSync(full) || fs.statSync(full).isDirectory()) {
@@ -119,15 +157,34 @@ async function browserChecks() {
   }
 
   const server = await startServer();
-  const base = `http://localhost:${server.address().port}/CCSM/`;
+  const base = `http://localhost:${server.address().port}/BDIPS_84th/`;
   const launchOptions = {};
   if (process.env.CHROMIUM_PATH) launchOptions.executablePath = process.env.CHROMIUM_PATH;
   const browser = await chromium.launch(launchOptions);
 
-  async function openWith(csvFile, query = '') {
+  // csvFile null = the sheet is down. analytics false = run the shipped
+  // analytics.js untouched; otherwise it runs with the test-only stub ID.
+  // The SHEET_URL in app.js may be blank, so the sheet is served to whatever
+  // address the page asks for, and a blank SHEET_URL is pointed at a test URL.
+  async function openWith(csvFile, query = '', { analytics = true } = {}) {
     const context = await browser.newContext({ serviceWorkers: 'block' });
-    const csv = fs.readFileSync(path.join(ROOT, csvFile), 'utf8');
-    await context.route(/docs\.google\.com/, route => route.fulfill({ body: csv, contentType: 'text/csv', headers: { 'access-control-allow-origin': '*' } }));
+    const csv = csvFile ? fs.readFileSync(path.join(ROOT, csvFile), 'utf8') : '';
+    await context.route(/docs\.google\.com/, route => csvFile
+      ? route.fulfill({ body: csv, contentType: 'text/csv', headers: { 'access-control-allow-origin': '*' } })
+      : route.fulfill({ status: 500, body: 'down', headers: { 'access-control-allow-origin': '*' } }));
+    await context.route(/\/app\.js(\?|$)/, route => {
+      let source = fs.readFileSync(path.join(ROOT, 'app.js'), 'utf8');
+      if (csvFile && /const SHEET_URL = '';/.test(source)) source = source.replace("const SHEET_URL = '';", "const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/TEST/pub?output=csv';");
+      route.fulfill({ body: source, contentType: 'text/javascript' });
+    });
+    if (analytics) {
+      await context.route(/\/analytics\.js(\?|$)/, route => route.fulfill({
+        body: fs.readFileSync(path.join(ROOT, 'analytics.js'), 'utf8').replace(/var GA_MEASUREMENT_ID = '[^']*';/, `var GA_MEASUREMENT_ID = '${TEST_GA_ID}';`),
+        contentType: 'text/javascript',
+      }));
+    }
+    context.requestsSeen = [];
+    context.on('request', request => context.requestsSeen.push(request.url()));
     await context.route(/googletagmanager\.com|google-analytics\.com/, route => route.fulfill({ body: '', contentType: 'text/javascript' }));
     await context.route(/weather\.com/, route => route.fulfill({ body: '<title>weather</title>', contentType: 'text/html' }));
     const page = await context.newPage();
@@ -211,7 +268,7 @@ async function browserChecks() {
       return second.page.evaluate(() => (window.dataLayer || []).map(entry => Array.from(entry))
         .filter(entry => entry[0] === 'event' && entry[1] === 'resource_search').map(entry => entry[2].search_term));
     };
-    for (const term of ['domestic violence', 'deportation', 'my number is 310 555 1212', 'me@example.com']) {
+    for (const term of ['domestic violence', 'deportation', 'my number is 310 555 1212', 'me@example.com', 'parole officer', 'rehab near me']) {
       const sent = await searches(term);
       check(`sensitive search is withheld: "${term}"`, sent[sent.length - 1] === '(withheld)', `sent: ${sent[sent.length - 1]}`);
     }
@@ -236,6 +293,40 @@ async function browserChecks() {
       Boolean(click) && click[2].resource_name !== '(withheld)' && /^https:\/\//.test(click[2].link_url), JSON.stringify(click && click[2]));
     check('no errors (privacy checks)', problems.length === 0 && second.problems.length === 0, [...problems, ...second.problems].join(' | '));
     await second.context.close();
+  }
+
+  // Analytics off: with the shipped (blank) ID nothing is loaded or sent.
+  console.log('Browser checks: analytics off');
+  if (SHIPPED_GA_ID === '') {
+    const { context, page, problems } = await openWith('tests/fixtures/sample.csv', '', { analytics: false });
+    await page.fill('#search', 'groceries');
+    await page.waitForTimeout(1800);
+    await page.locator('.card .btn-web').first().click({ button: 'middle' }).catch(() => {});
+    const state = await page.evaluate(() => ({ dataLayer: typeof window.dataLayer, gtag: typeof window.gtag, scripts: Array.from(document.scripts).map(s => s.src).filter(src => /google/i.test(src)) }));
+    check('with a blank ID no analytics code or script is present', state.dataLayer === 'undefined' && state.gtag === 'undefined' && state.scripts.length === 0, JSON.stringify(state));
+    check('with a blank ID no request goes to Google analytics', !context.requestsSeen.some(url => /googletagmanager|google-analytics|analytics\.google/.test(url)), context.requestsSeen.join(' | '));
+    check('with a blank ID the fixed page title still holds', (await page.title()) === SITE_TITLE);
+    check('no errors (analytics off)', problems.length === 0, problems.join(' | '));
+    await context.close();
+  } else {
+    console.log('  (skipped: analytics ID is set)');
+  }
+
+  // The sheet cannot load: a plain message, no email address, still safe.
+  console.log('Browser checks: sheet unavailable');
+  {
+    const { context, page, problems } = await openWith(null);
+    const outage = async () => ({ notice: await page.locator('#status-notice').innerText(), grid: await page.locator('#grid').innerText(), mailto: await page.locator('a[href^="mailto:"]').count() });
+    let state = await outage();
+    check('the load-failure message asks the visitor to try again later (English)', /try again later/i.test(state.notice) && /try again later/i.test(state.grid), JSON.stringify(state));
+    check('the load-failure message shows no email address (English)', state.mailto === 0 && !/@/.test(state.notice + state.grid + await page.locator('footer').innerText()));
+    await page.click('#btn-es');
+    await page.waitForTimeout(200);
+    state = await outage();
+    check('the load-failure message asks the visitor to try again later (Spanish)', /más tarde/i.test(state.notice) && /más tarde/i.test(state.grid), JSON.stringify(state));
+    check('the load-failure message shows no email address (Spanish)', state.mailto === 0 && !/@/.test(state.notice + state.grid));
+    check('no demo data is shown when the sheet is down', (await page.locator('.card').count()) === 0);
+    await context.close();
   }
 
   // Real listings: the everyday features still work.
@@ -309,9 +400,8 @@ async function browserChecks() {
       await card.locator('a.share-option').click();
       const shared = await lastClick();
       check(`a share-by-email click is told apart from contacting the listing (${l})`, complete(shared) && shared.click_type === 'share_email', JSON.stringify(shared));
-      await page.locator('#footer-contact a').click();
-      const footer = await lastClick();
-      check(`the Resident Services email is counted (${l})`, complete(footer) && footer.resource_name === 'CCSM Resident Services' && footer.click_type === 'email', JSON.stringify(footer));
+      check(`the footer shows the organization and no email address (${l})`,
+        /Better Days Integrated Programs/.test(await page.locator('footer').innerText()) && (await page.locator('footer a, #footer-contact').count()) === 0);
       await page.locator('.card .btn-web').first().click({ button: 'middle' });
       const middle = await lastClick();
       check(`a middle-click (new tab) is counted (${l})`, complete(middle) && middle.click_type === 'website', JSON.stringify(middle));

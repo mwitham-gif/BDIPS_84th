@@ -4,9 +4,11 @@ Guidance for Claude Code when working in this repository.
 
 ## What this is
 
-A community resource directory for **Better Days Integrated Programs (BDIPS)**, serving residents and neighbors around **238 84th St, Los Angeles, CA 90003**.
+A resource directory for **Better Days Integrated Programs (BDIPS)**, for adult men and women living in BDIPS transitional housing around 84th Street, Los Angeles, CA 90003. There are no children in the program. Residents include people leaving incarceration, people in recovery, people who were homeless and veterans.
 
-It is a copy of the Community Corporation of Santa Monica (CCSM) resource guide (`mwitham-gif/CCSM`) and works the same way. A sister copy, `mwitham-gif/CCSM-RedTail`, shows what changes between sites: the site name, the Google Sheet, the analytics ID, and the place names and URLs. The code, design and behavior stay the same. Where BDIPS and CCSM differ, BDIPS wins.
+The site must never identify residents, and it must never print labels for them. Do not write words like "inmate", "addict" or "felon" in any visible text. Keep wording respectful and plain.
+
+**Privacy of the address.** The repository is public and some residents may be survivors of domestic violence. Never write a street number or exact street address in any file (README, docs, page text, metadata, tests, fixtures, comments, pull requests). Use only "84th Street, Los Angeles, CA 90003" or "the 84th Street area". The safety checks fail if the old street number appears.
 
 Residents usually arrive by scanning a QR code on a flyer, search or pick a support area, then call or visit a provider directly. Most are on phones, many with weak signal, and many read Spanish.
 
@@ -34,19 +36,30 @@ There is no backend, no build step, no framework and no external fonts. It is st
 
 ## Where the data comes from
 
-Everything shown to residents comes from the published Google Sheet. The link is the `SHEET_URL` constant near the top of `app.js`. Change it only when moving to a different sheet or republishing.
+Everything shown to residents comes from the published Google Sheet. Its link is `SHEET_URL` in the **CONFIG block at the top of `app.js`**. It is blank until the owner publishes the sheet, and while blank the site makes no request and shows the "could not load" message. Do not put Google file IDs or any real sheet link in the repository except the published CSV link the owner sends.
 
 Sheet columns (row 1 headers): `name`, `name_es`, `category`, `description`, `description_es`, `address`, `address_es`, `phone`, `website`, `hours`, `hours_es`, `notes`, `notes_es`, `tags`, `tags_es`. Only `name` is required. Spanish columns fall back to English when blank.
 
 Valid `category` values: Food, Mental, Rental, Legal, Benefits, Transportation, Education, Employment, Childcare, Youth, Seniors, Housing, Disability, Medical, Domestic Violence, Other.
 
-The BDIPS values (sheet link, contact email, analytics ID, logo) are swapped in by the next pull request, with a `TODO.md` listing whatever is still missing. Until then the code still contains CCSM's values, and afterwards some will be clearly marked placeholders. Do not assume a CCSM value is correct for BDIPS.
+Listings must be specific to the 84th Street area (ZIP 90003 and nearby). They are gathered by BDIPS, never copied from another organization's directory.
+
+## Current state of the owner values
+
+All owner-specific values are in labeled CONFIG blocks (see `TRANSFER.md`):
+
+- `app.js`: `SHEET_URL` (blank, TODO) and `REPORT_EMAIL` (`b.overton@bdips.org`).
+- `analytics.js`: `GA_MEASUREMENT_ID` (blank, so **no analytics is sent**).
+- `tools/link-checker.gs`: `REPORT_TO` and `GUIDE_URL`.
+- Site address: `https://mwitham-gif.github.io/BDIPS_84th/` (canonical, og tags, QR code, link checker).
+
+No contact email is shown to visitors. `TODO.md` lists what is still missing.
 
 ## Rules to keep when changing the code
 
-- **Analytics must stay separate.** BDIPS reports to its own Google Analytics 4 property. Never reuse the CCSM or Red Tail IDs (`G-FT2K5G6SYR`, `G-S3BPY8ZED8`). Mixing them corrupts traffic data. Do not create an analytics property without asking first.
+- **Analytics must stay separate and off until BDIPS has its own property.** `GA_MEASUREMENT_ID` in `analytics.js` stays blank until BDIPS creates its own GA4 property. Never reuse another site's ID (`G-FT2K5G6SYR`, `G-S3BPY8ZED8`): mixing them corrupts traffic data. Do not create an analytics property without asking first. With the ID blank, no Google script loads and no event is sent; the tests exercise the event and privacy rules against a made-up stub ID.
 - **Keep the Content Security Policy strict.** No inline scripts, inline styles or event handlers in `index.html`. Sheet text is data, never code. Website links are limited to http and https.
-- **Privacy.** Sensitive searches (abuse, immigration status, self-harm, sexual or reproductive health, emails, phone numbers) are sent to analytics as `(withheld)`. Shared-link resource names never reach analytics. The Quick exit button and "Browsing safely" note on domestic violence views must keep working.
+- **Privacy.** Sensitive searches (abuse, immigration status, self-harm, sexual or reproductive health, substance use, criminal-justice history, emails, phone numbers) are sent to analytics as `(withheld)`. Shared-link resource names never reach analytics. The Quick exit button and "Browsing safely" note on domestic violence views must keep working.
 - **Bump asset versions together.** If a change edits `index.html` and `app.js` (or `styles.css`) together, raise the `?v=` numbers in `index.html` in the same commit.
 - **Both languages.** Any new visible text needs English and Spanish entries.
 - **Run the checks** before opening a pull request: `npm install --no-save playwright@1.56.1`, `npx playwright install chromium`, then `node tests/check.cjs`. The Actions workflow runs the same file. The test server serves the site under the repository name, so keep that path in sync if the repository is ever renamed.
@@ -60,4 +73,4 @@ The BDIPS values (sheet link, contact email, analytics ID, logo) are swapped in 
 - Do not stash or move the owner's untracked `.docx` files.
 - Ask before changing any account setting, sending email, creating an analytics property, changing repository settings, or doing anything that costs money.
 - After each step, give a short plain-language summary.
-- The scratch copies of CCSM and CCSM-RedTail are read-only references. Nothing is committed from them.
+- Any scratch copies of other organizations' repositories are read-only references. Nothing is committed from them.
