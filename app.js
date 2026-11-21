@@ -7,10 +7,9 @@
 const REPORT_EMAIL = 'b.overton@bdips.org';
 
 // The published Google Sheet (File > Share > Publish to web > CSV link).
-// TODO: paste the published CSV link here once the owner publishes the sheet.
-// While this is blank the site makes no request and shows its "could not load"
-// message, so it never shows demo data.
-const SHEET_URL = '';
+// If this is ever blank, the site makes no request and shows its "could not
+// load" message, so it never shows demo data.
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSxE8c41InjUcFHULKEvdMpw8bUJkHVEVEAjdBxCopfVQaaOWnu2Ej9UbdrthsnBKJkznxAx-DP9S79/pub?output=csv';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // END OF CONFIG
