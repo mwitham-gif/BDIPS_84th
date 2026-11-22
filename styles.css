@@ -86,14 +86,14 @@
 
   /* ── HEADER ── */
   header {
-    background: linear-gradient(135deg, #0069b4 0%, #00538f 100%);
+    background: linear-gradient(135deg, #008000 0%, #006400 100%);
     color: white;
     padding: 0;
     position: sticky;
     top: 0;
     z-index: 100;
     border-bottom: 1px solid rgba(255,255,255,0.16);
-    box-shadow: 0 10px 24px rgba(0,63,110,0.18);
+    box-shadow: 0 10px 24px rgba(0,70,0,0.18);
   }
 
   .header-inner {
@@ -175,7 +175,7 @@
 
   .lang-toggle button.active {
     background: #ffffff;
-    color: var(--ocean);
+    color: var(--sun);
   }
 
   .header-tools {
@@ -211,7 +211,7 @@
 
   .text-size-btn.active {
     background: #ffffff;
-    color: var(--ocean);
+    color: var(--sun);
   }
 
   /* Larger text: the whole page grows 20%, like a browser zoom. */
