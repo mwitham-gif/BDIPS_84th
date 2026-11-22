@@ -50,6 +50,7 @@ const T = {
     contactLabel: 'Contact',
     addressLabel: 'Where',
     openInMaps: 'Open in Google Maps',
+    backToTop: 'Back to top',
     hoursLabel: 'When',
     notesLabel: 'Details',
     noContact: 'Contact details unavailable',
@@ -152,6 +153,7 @@ Thank you for keeping this resource up to date!`,
     contactLabel: 'Contacto',
     addressLabel: 'Dónde',
     openInMaps: 'Abrir en Google Maps',
+    backToTop: 'Volver arriba',
     hoursLabel: 'Cuándo',
     notesLabel: 'Detalles',
     noContact: 'Datos de contacto no disponibles',
@@ -913,6 +915,11 @@ function isLargeText() {
 }
 
 document.getElementById('btn-text-size')?.addEventListener('click', () => setLargeText(!isLargeText()));
+
+document.getElementById('btn-top')?.addEventListener('click', () => {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+});
 
 // The header is sticky, so the pill and the scroll target sit just below it.
 function updateHeaderHeight() {
@@ -1860,6 +1867,11 @@ function setLang(l) {
   if (siteTitle && siteTitle.childNodes[0]) siteTitle.childNodes[0].textContent = T[l].siteTitle + ' ';
 
   setText('clear-search', T[l].clearSearch);
+  const topButton = document.getElementById('btn-top');
+  if (topButton) {
+    topButton.setAttribute('aria-label', T[l].backToTop);
+    topButton.setAttribute('title', T[l].backToTop);
+  }
   setText('site-subtitle', T[l].siteSub);
   setText('quick-exit-label', T[l].quickExit);
   document.getElementById('quick-exit')?.setAttribute('title', T[l].quickExitHint);
