@@ -1165,7 +1165,6 @@ function renderResourceCard(resource, i, query = '') {
   const name = getLocalizedValue(resource, 'name');
   const desc = getLocalizedValue(resource, 'description');
   const notes = getLocalizedValue(resource, 'notes');
-  const tags = getLocalizedTags(resource);
   // A phone cell like "Email hotline via website" has nothing to dial.
   const rawPhone = getField(resource, 'phone');
   const phone = rawPhone.replace(/\D/g, '').length >= 3 ? rawPhone : '';
@@ -1197,7 +1196,6 @@ function renderResourceCard(resource, i, query = '') {
             <span class="cat-dot cat-${escapeAttr(categoryClass)}"></span>
             ${escapeHTML(CAT_LABELS[lang][cat] || cat)}
           </div>
-          ${tags.length ? `<div class="card-tags">${tags.map(tag => `<span class="card-tag">${escapeHTML(tag)}</span>`).join('')}</div>` : ''}
         </div>
       </div>
       ${desc ? `
@@ -1464,18 +1462,6 @@ function getLocalizedValue(resource, key) {
     if (localized) return localized;
   }
   return getField(resource, key);
-}
-
-function getLocalizedTags(resource) {
-  const source = lang === 'es' && getField(resource, 'tags_es')
-    ? getField(resource, 'tags_es')
-    : getField(resource, 'tags');
-
-  return String(source || '')
-    .split(/[|,]/)
-    .map(tag => tag.trim())
-    .filter(Boolean)
-    .slice(0, 4);
 }
 
 function normalizeCategory(resource) {
