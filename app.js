@@ -1083,9 +1083,6 @@ function getShareModeResource() {
   return resources.find(resource => getField(resource, 'name') === shareResourceKey) || null;
 }
 
-// Elements are addressed by id throughout. Guard every write so that markup
-// drifting from this script — a cached copy of either one, or an id renamed in
-// index.html — degrades to a no-op instead of throwing and halting page setup.
 // "2026-11" becomes "November 2026" (English) or "noviembre de 2026" (Spanish).
 function formatLastVerified(l) {
   const when = new Date(`${LAST_VERIFIED}-01T12:00:00Z`);
@@ -1093,6 +1090,9 @@ function formatLastVerified(l) {
   return new Intl.DateTimeFormat(l === 'es' ? 'es' : 'en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(when);
 }
 
+// Elements are addressed by id throughout. Guard every write so that markup
+// drifting from this script — a cached copy of either one, or an id renamed in
+// index.html — degrades to a no-op instead of throwing and halting page setup.
 function setText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value;
