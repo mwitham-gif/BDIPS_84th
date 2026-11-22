@@ -101,8 +101,7 @@ function staticChecks() {
   const imgTags = [...(html + app).matchAll(/<img\b[^>]*>/g)].map(m => m[0]);
   check('every <img> has an alt attribute', imgTags.length > 0 && imgTags.every(tag => /\balt=/.test(tag)), imgTags.filter(tag => !/\balt=/.test(tag)).join(' | '));
   check('the header logo has a meaningful alt', /<img id="header-logo"[^>]*alt="[^"]{10,}"/.test(html));
-  check('the footer note, Last verified line and emergency line exist in the page', ['footer-privacy', 'footer-verified', 'emergency-line'].every(id => html.includes(`id="${id}"`)));
-  check('LAST_VERIFIED is set to a YYYY-MM month in the CONFIG block', /^const LAST_VERIFIED = '20\d\d-(0[1-9]|1[0-2])';/m.test(app));
+  check('the footer note and emergency line exist in the page, and there is no Last verified line', ['footer-privacy', 'emergency-line'].every(id => html.includes(`id="${id}"`)) && !/last verified|footer-verified|LAST_VERIFIED/i.test(html + app));
   {
     // The link checker's own tests (against a local server, no internet).
     const { spawnSync } = require('child_process');
@@ -385,13 +384,13 @@ async function browserChecks() {
     await context.close();
   }
 
-  // Emergency line, footer privacy note, Last verified date and image alts, in both languages.
+  // Emergency line, footer privacy note and image alts, in both languages.
   console.log('Browser checks: emergency line and footer');
   {
     const { context, page, problems } = await openWith('tests/fixtures/sample.csv', '', { analytics: false });
     const expected = {
-      en: { emergency: 'In an emergency call 911. For crisis support call or text 988.', privacy: 'We do not collect names or what you type into search. We count overall visits and clicks to improve this guide.', verified: /^Last verified: [A-Z][a-z]+ 20\d\d$/, logo: 'Better Days Integrated Programs logo' },
-      es: { emergency: 'En una emergencia llame al 911. Para apoyo en una crisis llame o envíe un mensaje de texto al 988.', privacy: 'No recopilamos nombres ni lo que usted escribe en la búsqueda. Contamos las visitas y los clics en general para mejorar esta guía.', verified: /^Última verificación: [a-záéíóú]+ de 20\d\d$/, logo: 'Logotipo de Better Days Integrated Programs' },
+      en: { emergency: 'In an emergency call 911. For crisis support call or text 988.', privacy: 'We do not collect names or what you type into search. We count overall visits and clicks to improve this guide.', logo: 'Better Days Integrated Programs logo' },
+      es: { emergency: 'En una emergencia llame al 911. Para apoyo en una crisis llame o envíe un mensaje de texto al 988.', privacy: 'No recopilamos nombres ni lo que usted escribe en la búsqueda. Contamos las visitas y los clics en general para mejorar esta guía.', logo: 'Logotipo de Better Days Integrated Programs' },
     };
     for (const l of ['en', 'es']) {
       await page.click(`#btn-${l}`);
@@ -402,16 +401,8 @@ async function browserChecks() {
       const searchBox = await page.locator('#search').boundingBox();
       check(`the emergency line sits above the search box (${l})`, emergencyBox && searchBox && emergencyBox.y < searchBox.y, JSON.stringify({ emergencyBox, searchBox }));
       check(`the footer privacy note shows (${l})`, (await page.locator('#footer-privacy').innerText()).trim() === e.privacy);
-      check(`the Last verified line shows a month and year (${l})`, e.verified.test((await page.locator('#footer-verified').innerText()).trim()), await page.locator('#footer-verified').innerText());
+      check(`there is no Last verified line (${l})`, (await page.locator('#footer-verified').count()) === 0 && !/verified|verificaci/i.test(await page.locator('footer').innerText()));
       check(`the header logo alt is in the language shown (${l})`, (await page.locator('#header-logo').getAttribute('alt')) === e.logo);
-    }
-    {
-      // The footer must show exactly the month set in the CONFIG block.
-      const [year, month] = fs.readFileSync(path.join(ROOT, 'app.js'), 'utf8').match(/^const LAST_VERIFIED = '(\d{4}-\d{2})';/m)[1].split('-');
-      const monthEn = new Date(Date.UTC(Number(year), Number(month) - 1, 1)).toLocaleString('en-US', { month: 'long', timeZone: 'UTC' });
-      await page.click('#btn-en');
-      await page.waitForTimeout(150);
-      check('the Last verified line shows the month set in LAST_VERIFIED', (await page.locator('#footer-verified').innerText()).trim() === `Last verified: ${monthEn} ${year}`, await page.locator('#footer-verified').innerText());
     }
     await page.click('#btn-en');
     await page.fill('#search', 'groceries');

@@ -1385,7 +1385,7 @@
     .emergency-line { width: calc(100% - 20px); }
   }
 
-  /* Footer notes: the privacy line and the Last verified date. */
+  /* Footer note: the privacy line. */
   .footer-note {
     max-width: 640px;
     margin: 10px auto 0;
