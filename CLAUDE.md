@@ -51,7 +51,7 @@ Listings must be specific to the 84th Street area (ZIP 90003 and nearby). They a
 All owner-specific values are in labeled CONFIG blocks (see `TRANSFER.md`):
 
 - `app.js`: `SHEET_URL` (the published CSV link) and `REPORT_EMAIL` (`b.overton@bdips.org`).
-- `analytics.js`: `GA_MEASUREMENT_ID` (blank, so **no analytics is sent**).
+- `analytics.js`: `GA_MEASUREMENT_ID` (`G-95HD1P3GLD`, BDIPS's own GA4 property). Blank it to turn analytics off.
 - `tools/link-checker.gs`: `REPORT_TO` and `GUIDE_URL`.
 - Site address: `https://mwitham-gif.github.io/BDIPS_84th/` (canonical, og tags, QR code, link checker).
 
@@ -59,9 +59,9 @@ No contact email is shown to visitors. `TODO.md` lists what is still missing.
 
 ## Rules to keep when changing the code
 
-- **Analytics must stay separate and off until BDIPS has its own property.** `GA_MEASUREMENT_ID` in `analytics.js` stays blank until BDIPS creates its own GA4 property. Never reuse another site's ID (`G-FT2K5G6SYR`, `G-S3BPY8ZED8`): mixing them corrupts traffic data. Do not create an analytics property without asking first. With the ID blank, no Google script loads and no event is sent; the tests exercise the event and privacy rules against a made-up stub ID.
+- **Analytics stays separate and minimal.** The site reports to BDIPS's own GA4 property only (`GA_MEASUREMENT_ID` in `analytics.js`). Never reuse another site's ID (`G-FT2K5G6SYR`, `G-S3BPY8ZED8`): mixing them corrupts traffic data. Do not create or change an analytics property or its settings without asking first. Exactly three events are sent: `resource_click` (`resource_name`, `resource_category`, `click_type` = call, website or directions, `link_url`), `filter_select` (`filter_name`) and `resource_search` (`search_term` = always `(withheld)`, `result_count`). Add no other Google product, remarketing or ad code. Adding `?ga_debug=1` to the address turns on GA4 DebugView; without it debug mode is off. With the ID blank, no Google script loads and no event is sent.
 - **Keep the Content Security Policy strict.** No inline scripts, inline styles or event handlers in `index.html`. Sheet text is data, never code. Website links are limited to http and https.
-- **Privacy.** Sensitive searches (abuse, immigration status, self-harm, sexual or reproductive health, substance use, criminal-justice history, emails, phone numbers) are sent to analytics as `(withheld)`. Shared-link resource names never reach analytics. The Quick exit button and "Browsing safely" note on domestic violence views must keep working.
+- **Privacy.** What a person types into the search box is never sent to analytics or placed in a URL; only the number of results is reported. `link_url` never carries a query string or hash, and phone and email links are reduced to `tel:` and `mailto:`. Shared-link resource names never reach analytics. Collect no names, emails, phone numbers or anything about the visitor. The Quick exit button and "Browsing safely" note on domestic violence views must keep working.
 - **Bump asset versions together.** If a change edits `index.html` and `app.js` (or `styles.css`) together, raise the `?v=` numbers in `index.html` in the same commit.
 - **Both languages.** Any new visible text needs English and Spanish entries.
 - **Run the checks** before opening a pull request: `npm install --no-save playwright@1.56.1`, `npx playwright install chromium`, then `node tests/check.cjs`. The Actions workflow runs the same file. The test server serves the site under the repository name, so keep that path in sync if the repository is ever renamed.

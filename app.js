@@ -1753,6 +1753,7 @@ function buildFilters() {
     <button class="filter-btn cat-tile tile-${getCategoryClass(cat)} ${isActive ? 'active' : ''}"
       type="button"
       data-category="${escapeAttr(cat)}"
+      data-filter-label="${escapeAttr(CAT_LABELS.en[cat] || cat)}"
       aria-pressed="${isActive ? 'true' : 'false'}">
       <span class="tile-icon">${icon}</span>
       <span class="tile-label">${escapeHTML(label)}</span>
