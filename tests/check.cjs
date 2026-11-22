@@ -459,10 +459,49 @@ async function browserChecks() {
     check('no errors (Google tag)', plain.problems.length === 0, plain.problems.join(' | '));
     await plain.context.close();
 
+    check('hits sent as a visitor leaves the page use the beacon transport', Boolean(config) && config[2].transport_type === 'beacon', JSON.stringify(config && config[2]));
+
+    // A search must be reported even when the visitor does not pause for a full 1.5 seconds.
+    const searchesOf = async page => (await entries(page)).filter(entry => entry[0] === 'event' && entry[1] === 'resource_search').map(entry => entry[2]);
+    const quick = {
+      'presses Enter (the phone Search key)': async page => { await page.keyboard.type('groceries'); await page.keyboard.press('Enter'); },
+      'taps a Call button right after typing': async page => {
+        await page.keyboard.type('groceries');
+        await page.evaluate(() => document.addEventListener('click', event => event.preventDefault(), true));
+        await page.locator('.card .btn-call').first().click();
+      },
+      'taps outside the search box': async page => { await page.keyboard.type('groceries'); await page.locator('h1').first().click(); },
+      'switches away from the page': async page => {
+        await page.keyboard.type('groceries');
+        await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true }); document.dispatchEvent(new Event('visibilitychange')); });
+      },
+    };
+    for (const [what, run] of Object.entries(quick)) {
+      const quickPage = await openWith('tests/fixtures/sample.csv', '', { analytics: 'shipped' });
+      await quickPage.page.click('#search');
+      await run(quickPage.page);
+      await quickPage.page.waitForTimeout(2000);
+      const sent = await searchesOf(quickPage.page);
+      check(`a search is reported once when the visitor ${what}`,
+        sent.length === 1 && sent[0].search_term === '(withheld)' && typeof sent[0].result_count === 'number', JSON.stringify(sent));
+      check(`nothing typed is sent when the visitor ${what}`, !/groceries/i.test(JSON.stringify(await entries(quickPage.page))));
+      await quickPage.context.close();
+    }
+
     const debug = await openWith('tests/fixtures/sample.csv', '?ga_debug=1', { analytics: 'shipped' });
     const debugConfig = (await entries(debug.page)).find(entry => entry[0] === 'config');
     check('?ga_debug=1 turns debug mode on', Boolean(debugConfig) && debugConfig[2].debug_mode === true, JSON.stringify(debugConfig && debugConfig[2]));
     check('the debug switch is not reported as part of the page address', Boolean(debugConfig) && !/ga_debug/.test(debugConfig[2].page_location), debugConfig && debugConfig[2].page_location);
+    const consoleLines = [];
+    debug.page.on('console', message => { if (/\[analytics\]/.test(message.text())) consoleLines.push(message.text()); });
+    await debug.page.click('#filters [data-category="Food"]');
+    await debug.page.click('#search');
+    await debug.page.keyboard.type('parole');
+    await debug.page.keyboard.press('Enter');
+    await debug.page.waitForTimeout(300);
+    const debugEvents = (await entries(debug.page)).filter(entry => entry[0] === 'event');
+    check('in debug mode every event also carries debug_mode', debugEvents.length >= 2 && debugEvents.every(entry => entry[2].debug_mode === true), JSON.stringify(debugEvents));
+    check('in debug mode events are echoed to the console without the typed word', consoleLines.some(line => /resource_search/.test(line)) && !consoleLines.some(line => /parole/i.test(line)), consoleLines.join(' | '));
     check('no errors (Google tag, debug)', debug.problems.length === 0, debug.problems.join(' | '));
     await debug.context.close();
   }

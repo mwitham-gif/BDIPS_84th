@@ -76,12 +76,26 @@ function startAnalytics() {
     page_title: SITE_TITLE,
     // Visits are counted, never joined to Google accounts or used for ads.
     allow_google_signals: false,
-    allow_ad_personalization_signals: false
+    allow_ad_personalization_signals: false,
+    // Hits sent as a visitor taps Call or leaves the page still get delivered.
+    transport_type: 'beacon'
   };
   // Debug switch: add ?ga_debug=1 to the address to see this visit in GA4
   // DebugView. Without it, debug mode stays off.
   if (debugOn) config.debug_mode = true;
   gtag('config', GA_MEASUREMENT_ID, config);
+
+  // Every event goes through here. In debug mode (?ga_debug=1) each event also
+  // carries debug_mode, so DebugView picks it up, and is echoed to the browser
+  // console so it can be checked without opening Google Analytics.
+  function send(name, params) {
+    if (debugOn) {
+      params.debug_mode = true;
+      if (window.console && console.info) console.info('[analytics]', name, JSON.stringify(params));
+    }
+    gtag('event', name, params);
+  }
+  if (debugOn && window.console && console.info) console.info('[analytics] debug mode on for', GA_MEASUREMENT_ID);
 
   // Custom GA4 events, sent with gtag() so they reach GA4 with their
   // parameters. Everything below uses document-level delegation because
@@ -153,7 +167,7 @@ function startAnalytics() {
     function trackResourceClick(link) {
       var params = getResourceParams(link);
       if (!params) return;
-      gtag('event', 'resource_click', params);
+      send('resource_click', params);
     }
 
     // A middle-click (open in a new tab) fires auxclick, not click.
@@ -169,6 +183,9 @@ function startAnalytics() {
 
       var link = findResourceLink(target);
       if (link) {
+        // The visitor may be leaving for the phone dialer or another site:
+        // report a search that is still waiting first.
+        sendPendingSearch();
         trackResourceClick(link);
         return;
       }
@@ -178,7 +195,7 @@ function startAnalytics() {
         // app.js stamps the English label on each tile so the same filter is
         // one row in reports in both languages; the visible label is the fallback.
         var filterName = filterButton.getAttribute('data-filter-label') || cleanText(filterButton.querySelector('.tile-label'));
-        if (filterName) gtag('event', 'filter_select', { filter_name: filterName });
+        if (filterName) send('filter_select', { filter_name: filterName });
       }
     }, true);
 
@@ -189,22 +206,43 @@ function startAnalytics() {
     // Only the fact that a search happened, and how many listings it matched,
     // are reported. The words typed are read just to avoid counting the same
     // search twice; they are never sent anywhere.
+    function sendPendingSearch() {
+      clearTimeout(searchTimer);
+      var input = document.getElementById('search');
+      if (!input) return;
+      var term = input.value.trim();
+      if (!term || term === lastSearchTerm) return;
+      lastSearchTerm = term;
+      // app.js records how many listings matched on #grid.
+      var grid = document.getElementById('grid');
+      var count = grid ? Number(grid.getAttribute('data-result-count')) : NaN;
+      var params = { search_term: '(withheld)' };
+      if (!isNaN(count)) params.result_count = count;
+      send('resource_search', params);
+    }
+
+    // A search is reported when the visitor pauses typing, and straight away
+    // when they press Enter or the phone's Search key, leave the search box,
+    // tap a listing, or switch away from the page. Waiting only for a pause
+    // lost searches on phones.
     document.addEventListener('input', function (event) {
       var input = event.target;
       if (!(input instanceof Element) || input.id !== 'search') return;
-
       clearTimeout(searchTimer);
-      searchTimer = setTimeout(function () {
-        var term = input.value.trim();
-        if (!term || term === lastSearchTerm) return;
-        lastSearchTerm = term;
-        // app.js records how many listings matched on #grid.
-        var grid = document.getElementById('grid');
-        var count = grid ? Number(grid.getAttribute('data-result-count')) : NaN;
-        var params = { search_term: '(withheld)' };
-        if (!isNaN(count)) params.result_count = count;
-        gtag('event', 'resource_search', params);
-      }, SEARCH_DEBOUNCE_MS);
+      searchTimer = setTimeout(sendPendingSearch, SEARCH_DEBOUNCE_MS);
     });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' && event.target instanceof Element && event.target.id === 'search') sendPendingSearch();
+    }, true);
+    document.addEventListener('search', function (event) {
+      if (event.target instanceof Element && event.target.id === 'search') sendPendingSearch();
+    }, true);
+    document.addEventListener('focusout', function (event) {
+      if (event.target instanceof Element && event.target.id === 'search') sendPendingSearch();
+    }, true);
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') sendPendingSearch();
+    });
+    window.addEventListener('pagehide', sendPendingSearch);
   })();
 }

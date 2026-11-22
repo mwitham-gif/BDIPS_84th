@@ -71,9 +71,9 @@ Only three events are sent:
 |---|---|---|
 | `resource_click` | Someone taps a listing's Call, website or address (directions) button | `resource_name`, `resource_category`, `click_type` (`call`, `website` or `directions`), `link_url` |
 | `filter_select` | Someone taps a support-area tile | `filter_name` |
-| `resource_search` | Someone searches (1.5 seconds after typing stops) | `search_term` (always `(withheld)`), `result_count` |
+| `resource_search` | Someone searches: 1.5 seconds after typing stops, or at once when they press Enter or the phone's Search key, leave the search box, tap a listing, or switch away from the page (sent once per search) | `search_term` (always `(withheld)`), `result_count` |
 
-What a person types is never sent, in any parameter or in the page address. `link_url` has no query string or hash, and phone and email links are reduced to `tel:` and `mailto:`. Shared-link resource names never reach analytics. To watch events live, add `?ga_debug=1` to the site address and open GA4 DebugView; without it debug mode stays off. Never reuse another organization's ID.
+What a person types is never sent, in any parameter or in the page address. `link_url` has no query string or hash, and phone and email links are reduced to `tel:` and `mailto:`. Shared-link resource names never reach analytics. To watch events live, add `?ga_debug=1` to the site address and open GA4 DebugView; without it debug mode stays off. In debug mode each event also carries `debug_mode` and is printed to the browser console as `[analytics] …`, so it can be checked without Google Analytics open. Never reuse another organization's ID.
 
 In GA4 (Admin → Custom definitions), register `resource_name`, `resource_category`, `click_type`, `link_url`, `filter_name` and `search_term` as event-scoped custom dimensions, and `result_count` as an event-scoped custom metric.
 
