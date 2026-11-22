@@ -260,7 +260,6 @@ const initialLang = urlParams.get('lang') === 'es' ? 'es' : 'en';
 // page makes no extra requests; drawn in each category's color via CSS.
 const ICONS = {
   Food: '<path d="m15 11-1 9"/><path d="m19 11-4-7"/><path d="M2 11h20"/><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/><path d="M4.5 15.5h15"/><path d="m5 11 4-7"/><path d="m9 11 1 9"/>',
-  Rental: '<path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>',
   Housing: '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   Medical: '<path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/>',
   'Domestic Violence': '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
@@ -285,7 +284,7 @@ function getCategoryIcon(category) {
 
 const CAT_LABELS = {
   en: {
-    Food:'Food support', Mental:'Mental health support', Rental:'Rental help',
+    Food:'Food support', Mental:'Mental health support',
     Legal:'Legal help', Benefits:'Benefits help', Other:'Community support',
     Transportation:'Transportation help', Education:'Education support', Employment:'Job support',
     Childcare:'Childcare support', Youth:'Youth support', Seniors:'Senior support', Housing:'Housing help',
@@ -293,7 +292,7 @@ const CAT_LABELS = {
     Veterans:'Veterans support', Sobriety:'Sobriety support'
   },
   es: {
-    Food:'Apoyo con comida', Mental:'Apoyo de salud mental', Rental:'Ayuda con renta',
+    Food:'Apoyo con comida', Mental:'Apoyo de salud mental',
     Legal:'Ayuda legal', Benefits:'Ayuda con beneficios', Other:'Apoyo comunitario',
     Transportation:'Ayuda con transporte', Education:'Apoyo educativo', Employment:'Ayuda con empleo',
     Childcare:'Apoyo con cuidado infantil', Youth:'Apoyo para jóvenes', Seniors:'Apoyo para personas mayores',
@@ -308,7 +307,7 @@ const CAT_LABELS = {
 // visible without scrolling on a phone. Categories not listed here (new
 // ones added in the sheet) follow in sheet order; "Other" is always last.
 const CATEGORY_ORDER = [
-  'Food', 'Rental', 'Housing', 'Veterans', 'Medical', 'Domestic Violence', 'Mental', 'Sobriety',
+  'Food', 'Housing', 'Veterans', 'Medical', 'Domestic Violence', 'Mental', 'Sobriety',
   'Benefits', 'Seniors', 'Disability', 'Legal', 'Childcare', 'Youth',
   'Employment', 'Transportation', 'Education',
 ];
@@ -354,9 +353,9 @@ const CATEGORY_ALIASES = {
   mental: 'Mental',
   'mental health': 'Mental',
   counseling: 'Mental',
-  rental: 'Rental',
-  'rental assistance': 'Rental',
-  eviction: 'Rental',
+  rental: 'Housing',
+  'rental assistance': 'Housing',
+  eviction: 'Housing',
   legal: 'Legal',
   'legal aid': 'Legal',
   benefits: 'Benefits',
@@ -1526,13 +1525,12 @@ function compareText(a, b) {
 
 // Everyday words residents type, mapped to the support area they mean, in
 // English and Spanish. A search for "groceries", "eviction" or "comida" then
-// finds the Food, Rental or Food listings even when the listing never uses
+// finds the Food or Housing listings even when the listing never uses
 // that word. Words are matched without accents, so "medico" finds "médico".
 // To teach search a new word, add it to the right line.
 const SEARCH_CONCEPTS = [
   { category: 'Food', words: ['food', 'groceries', 'grocery', 'hungry', 'hunger', 'meal', 'meals', 'eat', 'eating', 'pantry', 'pantries', 'calfresh', 'ebt', 'snap', 'wic', 'lunch', 'dinner', 'breakfast', 'comida', 'comidas', 'alimento', 'alimentos', 'despensa', 'hambre', 'comer', 'mercado', 'almuerzo', 'cena', 'desayuno'] },
-  { category: 'Rental', words: ['rent', 'rental', 'evict', 'eviction', 'evicted', 'landlord', 'lease', 'deposit', 'back rent', 'tenant', 'tenants', 'renta', 'alquiler', 'desalojo', 'desalojar', 'casero', 'arrendador', 'inquilino', 'inquilinos', 'deposito'] },
-  { category: 'Housing', words: ['housing', 'homeless', 'homelessness', 'unhoused', 'shelter', 'apartment', 'section 8', 'voucher', 'motel', 'sleeping in car', 'vivienda', 'sin hogar', 'desamparado', 'refugio', 'apartamento', 'casa', 'albergue'] },
+  { category: 'Housing', words: ['housing', 'homeless', 'homelessness', 'unhoused', 'shelter', 'apartment', 'section 8', 'voucher', 'motel', 'sleeping in car', 'vivienda', 'sin hogar', 'desamparado', 'refugio', 'apartamento', 'casa', 'albergue', 'rent', 'rental', 'evict', 'eviction', 'evicted', 'landlord', 'lease', 'deposit', 'back rent', 'tenant', 'tenants', 'renta', 'alquiler', 'desalojo', 'desalojar', 'casero', 'arrendador', 'inquilino', 'inquilinos', 'deposito'] },
   { category: 'Medical', words: ['doctor', 'doctors', 'clinic', 'sick', 'health', 'healthcare', 'dental', 'dentist', 'teeth', 'tooth', 'glasses', 'vision', 'eye', 'insurance', 'medi-cal', 'medical', 'medicaid', 'medicare', 'prescription', 'pharmacy', 'medicine', 'pregnant', 'pregnancy', 'prenatal', 'vaccine', 'shots', 'medico', 'clinica', 'enfermo', 'enferma', 'salud', 'dentista', 'dientes', 'lentes', 'seguro medico', 'medicina', 'farmacia', 'embarazada', 'embarazo', 'vacuna'] },
   { category: 'Mental', words: ['mental', 'depression', 'depressed', 'anxiety', 'anxious', 'stress', 'stressed', 'therapy', 'therapist', 'counseling', 'counselor', 'counsellor', 'suicide', 'suicidal', 'crisis', 'grief', 'trauma', '988', 'lonely', 'depresion', 'ansiedad', 'estres', 'terapia', 'terapeuta', 'consejeria', 'consejero', 'suicidio', 'duelo', 'soledad'] },
   { category: 'Sobriety', words: ['addiction', 'addict', 'drugs', 'drug', 'alcohol', 'alcoholic', 'drinking', 'sober', 'sobriety', 'recovery', 'rehab', 'relapse', 'aa', 'na', 'twelve step', '12 step', 'sober living', 'adiccion', 'drogas', 'alcohol', 'sobrio', 'sobria', 'sobriedad', 'recuperacion', 'alcoholicos anonimos', 'narcoticos anonimos'] },

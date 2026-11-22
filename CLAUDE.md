@@ -40,7 +40,9 @@ Everything shown to residents comes from the published Google Sheet. Its link is
 
 Sheet columns (row 1 headers): `name`, `name_es`, `category`, `description`, `description_es`, `address`, `address_es`, `phone`, `website`, `hours`, `hours_es`, `notes`, `notes_es`, `tags`, `tags_es`. Only `name` is required. Spanish columns fall back to English when blank.
 
-Valid `category` values: Food, Mental, Rental, Legal, Benefits, Transportation, Education, Employment, Childcare, Youth, Seniors, Housing, Disability, Medical, Domestic Violence, Veterans, Sobriety, Other.
+Valid `category` values: Food, Mental, Legal, Benefits, Transportation, Education, Employment, Childcare, Youth, Seniors, Housing, Disability, Medical, Domestic Violence, Veterans, Sobriety, Other.
+
+Rental help and Housing help are one category, `Housing`. A row that still says `Rental` (or `rental assistance`, `eviction`) is shown under Housing help.
 
 Listings must be specific to the 84th Street area (ZIP 90003 and nearby). They are gathered by BDIPS, never copied from another organization's directory.
 
