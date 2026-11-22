@@ -336,6 +336,22 @@ async function browserChecks() {
     await context.close();
   }
 
+  // Rental help and Housing help are one category (Housing help).
+  console.log('Browser checks: housing help');
+  {
+    const { context, page, problems } = await openWith('tests/fixtures/sample.csv', '', { analytics: false });
+    check('there is no separate Rental tile', (await page.locator('#filters [data-category="Rental"]').count()) === 0);
+    check('there is a Housing help tile', (await page.locator('#filters [data-category="Housing"]').count()) === 1);
+    await page.click('#filters [data-category="Housing"]');
+    await page.waitForTimeout(200);
+    check('a sheet row that still says Rental shows under Housing help', (await page.locator('.card', { hasText: /Example Tenant Help/ }).count()) === 1);
+    await page.goto(page.url().split('?')[0] + '?q=eviction');
+    await page.waitForTimeout(400);
+    check('searching "eviction" finds the housing listing', (await page.locator('.card', { hasText: /Example Tenant Help/ }).count()) === 1);
+    check('no errors (housing help)', problems.length === 0, problems.join(' | '));
+    await context.close();
+  }
+
   // Veterans and Sobriety tiles.
   console.log('Browser checks: veterans and sobriety tiles');
   {

@@ -26,7 +26,6 @@
     /* Category dots. Each category gets its own hue, and none of them are
        blue, so blue keeps meaning "you can tap this". */
     --c-Food: #e05c3a;
-    --c-Rental: #5c940d;
     --c-Housing: #2f9e44;
     --c-Medical: #e63946;
     --c-DomesticViolence: #b5338a;
@@ -471,7 +470,6 @@
   /* Category colours for the service-area tiles (all screen sizes). */
   .tile-Food { --tile-color: var(--c-Food); --tile-bg: #fde8e2; }
   .tile-Mental { --tile-color: var(--c-Mental); --tile-bg: #ede7f6; }
-  .tile-Rental { --tile-color: var(--c-Rental); --tile-bg: #eaf4dc; }
   .tile-Housing { --tile-color: var(--c-Housing); --tile-bg: #e3f5e6; }
   .tile-Legal { --tile-color: var(--c-Legal); --tile-bg: #eceef0; }
   .tile-Benefits { --tile-color: var(--c-Benefits); --tile-bg: #fef3c7; }
@@ -717,7 +715,6 @@
 
   .icon-Food { background: #fde8e2; color: var(--c-Food); }
   .icon-Mental { background: #ede7f6; color: var(--c-Mental); }
-  .icon-Rental { background: #eaf4dc; color: var(--c-Rental); }
   .icon-Housing { background: #e3f5e6; color: var(--c-Housing); }
   .icon-Legal { background: #eceef0; color: var(--c-Legal); }
   .icon-Benefits { background: #fef3c7; color: var(--c-Benefits); }
@@ -770,7 +767,6 @@
   }
   .cat-Food { background: var(--c-Food); }
   .cat-Mental { background: var(--c-Mental); }
-  .cat-Rental { background: var(--c-Rental); }
   .cat-Housing { background: var(--c-Housing); }
   .cat-Legal { background: var(--c-Legal); }
   .cat-Benefits { background: var(--c-Benefits); }
@@ -2115,7 +2111,6 @@
     }
 
     .ps-item.pc-Food { --ps-cat: var(--c-Food); }
-    .ps-item.pc-Rental { --ps-cat: var(--c-Rental); }
     .ps-item.pc-Housing { --ps-cat: var(--c-Housing); }
     .ps-item.pc-Medical { --ps-cat: var(--c-Medical); }
     .ps-item.pc-DomesticViolence { --ps-cat: var(--c-DomesticViolence); }
