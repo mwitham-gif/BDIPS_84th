@@ -38,6 +38,8 @@
     --c-Childcare: #d6336c;
     --c-Youth: #06b88a;
     --c-Employment: #9c6644;
+    --c-Veterans: #5f6b3a;
+    --c-Sobriety: #8e3b46;
     --c-Transportation: #2a9d8f;
     --c-Education: #1098ad;
     --c-Other: #868e96;
@@ -482,6 +484,8 @@
   .tile-Disability { --tile-color: var(--c-Disability); --tile-bg: #f0e5ff; }
   .tile-Medical { --tile-color: var(--c-Medical); --tile-bg: #fde3e6; }
   .tile-DomesticViolence { --tile-color: var(--c-DomesticViolence); --tile-bg: #f7e3f0; }
+  .tile-Veterans { --tile-color: var(--c-Veterans); --tile-bg: #eef0e2; }
+  .tile-Sobriety { --tile-color: var(--c-Sobriety); --tile-bg: #f5e4e7; }
   .tile-Other { --tile-color: var(--c-Other); --tile-bg: #f3f4f6; }
 
   /* ── RESULTS INFO ── */
@@ -726,6 +730,8 @@
   .icon-Disability { background: #f0e5ff; color: var(--c-Disability); }
   .icon-Medical { background: #fde3e6; color: var(--c-Medical); }
   .icon-DomesticViolence { background: #f7e3f0; color: var(--c-DomesticViolence); }
+  .icon-Veterans { background: #eef0e2; color: var(--c-Veterans); }
+  .icon-Sobriety { background: #f5e4e7; color: var(--c-Sobriety); }
   .icon-Other { background: #f3f4f6; color: var(--c-Other); }
 
   .card-name {
@@ -777,6 +783,8 @@
   .cat-Disability { background: var(--c-Disability); }
   .cat-Medical { background: var(--c-Medical); }
   .cat-DomesticViolence { background: var(--c-DomesticViolence); }
+  .cat-Veterans { background: var(--c-Veterans); }
+  .cat-Sobriety { background: var(--c-Sobriety); }
   .cat-Other { background: var(--c-Other); }
 
   .card-desc {
@@ -2121,6 +2129,8 @@
     .ps-item.pc-Employment { --ps-cat: var(--c-Employment); }
     .ps-item.pc-Transportation { --ps-cat: var(--c-Transportation); }
     .ps-item.pc-Education { --ps-cat: var(--c-Education); }
+    .ps-item.pc-Veterans { --ps-cat: var(--c-Veterans); }
+    .ps-item.pc-Sobriety { --ps-cat: var(--c-Sobriety); }
     .ps-item.pc-Other { --ps-cat: var(--c-Other); }
 
     .ps-item h2 {

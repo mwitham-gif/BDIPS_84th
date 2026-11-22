@@ -274,6 +274,8 @@ const ICONS = {
   Employment: '<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/>',
   Transportation: '<path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/>',
   Education: '<path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/>',
+  Veterans: '<path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><path d="M11 12 5.12 2.2"/><path d="m13 12 5.88-9.8"/><path d="M8 7h8"/><circle cx="12" cy="17" r="5"/><path d="M12 18v-2h-.5"/>',
+  Sobriety: '<path d="M14 9.536V7a4 4 0 0 1 4-4h1.5a.5.5 0 0 1 .5.5V5a4 4 0 0 1-4 4 4 4 0 0 0-4 4c0 2 1 3 1 5a5 5 0 0 1-1 3"/><path d="M4 9a5 5 0 0 1 8 4 5 5 0 0 1-8-4"/><path d="M5 21h14"/>',
   Other: '<path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/>',
 };
 
@@ -287,7 +289,8 @@ const CAT_LABELS = {
     Legal:'Legal help', Benefits:'Benefits help', Other:'Community support',
     Transportation:'Transportation help', Education:'Education support', Employment:'Job support',
     Childcare:'Childcare support', Youth:'Youth support', Seniors:'Senior support', Housing:'Housing help',
-    Disability:'Disability support', Medical:'Medical care', 'Domestic Violence':'Domestic violence support'
+    Disability:'Disability support', Medical:'Medical care', 'Domestic Violence':'Domestic violence support',
+    Veterans:'Veterans support', Sobriety:'Sobriety support'
   },
   es: {
     Food:'Apoyo con comida', Mental:'Apoyo de salud mental', Rental:'Ayuda con renta',
@@ -296,6 +299,7 @@ const CAT_LABELS = {
     Childcare:'Apoyo con cuidado infantil', Youth:'Apoyo para jóvenes', Seniors:'Apoyo para personas mayores',
     Housing:'Ayuda con vivienda', Disability:'Apoyo por discapacidad', Medical:'Atención médica',
     'Domestic Violence':'Apoyo por violencia doméstica',
+    Veterans:'Apoyo para veteranos', Sobriety:'Apoyo para la sobriedad',
   },
 };
 
@@ -304,7 +308,7 @@ const CAT_LABELS = {
 // visible without scrolling on a phone. Categories not listed here (new
 // ones added in the sheet) follow in sheet order; "Other" is always last.
 const CATEGORY_ORDER = [
-  'Food', 'Rental', 'Housing', 'Medical', 'Domestic Violence', 'Mental',
+  'Food', 'Rental', 'Housing', 'Veterans', 'Medical', 'Domestic Violence', 'Mental', 'Sobriety',
   'Benefits', 'Seniors', 'Disability', 'Legal', 'Childcare', 'Youth',
   'Employment', 'Transportation', 'Education',
 ];
@@ -374,6 +378,13 @@ const CATEGORY_ALIASES = {
   healthcare: 'Medical',
   health: 'Medical',
   'domestic violence': 'Domestic Violence',
+  veterans: 'Veterans',
+  veteran: 'Veterans',
+  military: 'Veterans',
+  sobriety: 'Sobriety',
+  sober: 'Sobriety',
+  recovery: 'Sobriety',
+  'sober living': 'Sobriety',
 };
 
 function getReportHref(resource) {
@@ -1523,7 +1534,9 @@ const SEARCH_CONCEPTS = [
   { category: 'Rental', words: ['rent', 'rental', 'evict', 'eviction', 'evicted', 'landlord', 'lease', 'deposit', 'back rent', 'tenant', 'tenants', 'renta', 'alquiler', 'desalojo', 'desalojar', 'casero', 'arrendador', 'inquilino', 'inquilinos', 'deposito'] },
   { category: 'Housing', words: ['housing', 'homeless', 'homelessness', 'unhoused', 'shelter', 'apartment', 'section 8', 'voucher', 'motel', 'sleeping in car', 'vivienda', 'sin hogar', 'desamparado', 'refugio', 'apartamento', 'casa', 'albergue'] },
   { category: 'Medical', words: ['doctor', 'doctors', 'clinic', 'sick', 'health', 'healthcare', 'dental', 'dentist', 'teeth', 'tooth', 'glasses', 'vision', 'eye', 'insurance', 'medi-cal', 'medical', 'medicaid', 'medicare', 'prescription', 'pharmacy', 'medicine', 'pregnant', 'pregnancy', 'prenatal', 'vaccine', 'shots', 'medico', 'clinica', 'enfermo', 'enferma', 'salud', 'dentista', 'dientes', 'lentes', 'seguro medico', 'medicina', 'farmacia', 'embarazada', 'embarazo', 'vacuna'] },
-  { category: 'Mental', words: ['mental', 'depression', 'depressed', 'anxiety', 'anxious', 'stress', 'stressed', 'therapy', 'therapist', 'counseling', 'counselor', 'counsellor', 'suicide', 'suicidal', 'crisis', 'addiction', 'drugs', 'alcohol', 'sober', 'recovery', 'grief', 'trauma', '988', 'lonely', 'depresion', 'ansiedad', 'estres', 'terapia', 'terapeuta', 'consejeria', 'consejero', 'suicidio', 'adiccion', 'drogas', 'duelo', 'soledad'] },
+  { category: 'Mental', words: ['mental', 'depression', 'depressed', 'anxiety', 'anxious', 'stress', 'stressed', 'therapy', 'therapist', 'counseling', 'counselor', 'counsellor', 'suicide', 'suicidal', 'crisis', 'grief', 'trauma', '988', 'lonely', 'depresion', 'ansiedad', 'estres', 'terapia', 'terapeuta', 'consejeria', 'consejero', 'suicidio', 'duelo', 'soledad'] },
+  { category: 'Sobriety', words: ['addiction', 'addict', 'drugs', 'drug', 'alcohol', 'alcoholic', 'drinking', 'sober', 'sobriety', 'recovery', 'rehab', 'relapse', 'aa', 'na', 'twelve step', '12 step', 'sober living', 'adiccion', 'drogas', 'alcohol', 'sobrio', 'sobria', 'sobriedad', 'recuperacion', 'alcoholicos anonimos', 'narcoticos anonimos'] },
+  { category: 'Veterans', words: ['veteran', 'veterans', 'vet', 'vets', 'military', 'army', 'navy', 'marine', 'marines', 'air force', 'service member', 'gi bill', 'veterano', 'veteranos', 'militar', 'ejercito'] },
   { category: 'Domestic Violence', words: ['abuse', 'abused', 'abusive', 'violence', 'violent', 'hit', 'hits', 'hurt', 'hurts', 'unsafe', 'afraid', 'scared', 'restraining order', 'stalking', 'stalker', 'dv', 'abuso', 'violencia', 'maltrato', 'golpe', 'golpea', 'miedo', 'peligro', 'orden de restriccion', 'acoso'] },
   { category: 'Legal', words: ['lawyer', 'lawyers', 'attorney', 'court', 'legal', 'law', 'immigration', 'immigrant', 'deport', 'deportation', 'citizenship', 'daca', 'green card', 'ticket', 'record', 'expunge', 'expungement', 'rights', 'sued', 'lawsuit', 'abogado', 'abogada', 'corte', 'inmigracion', 'inmigrante', 'ciudadania', 'derechos', 'ley', 'demanda'] },
   { category: 'Benefits', words: ['benefits', 'calfresh', 'medi-cal', 'ssi', 'ssdi', 'social security', 'cash aid', 'calworks', 'gr', 'general relief', 'utility', 'utilities', 'bill', 'bills', 'electric', 'electricity', 'gas bill', 'water bill', 'phone', 'internet', 'lifeline', 'taxes', 'tax', 'beneficios', 'seguro social', 'ayuda en efectivo', 'luz', 'factura', 'facturas', 'cuentas', 'impuestos', 'telefono'] },
