@@ -336,6 +336,32 @@ async function browserChecks() {
     await context.close();
   }
 
+  // Veterans and Sobriety tiles.
+  console.log('Browser checks: veterans and sobriety tiles');
+  {
+    const { context, page, problems } = await openWith('tests/fixtures/tiles.csv', '', { analytics: false });
+    for (const [l, vet, sob] of [['en', 'Veterans support', 'Sobriety support'], ['es', 'Apoyo para veteranos', 'Apoyo para la sobriedad']]) {
+      await page.click(`#btn-${l}`);
+      await page.waitForTimeout(200);
+      const tiles = (await page.locator('#filters .cat-tile').allInnerTexts()).join(' | ').toLowerCase();
+      check(`the Veterans and Sobriety tiles are named (${l})`, tiles.includes(vet.toLowerCase()) && tiles.includes(sob.toLowerCase()), tiles);
+    }
+    check('both new tiles draw their own icon', (await page.locator('#filters [data-category="Veterans"] svg path').count()) > 0 && (await page.locator('#filters [data-category="Sobriety"] svg path').count()) > 0);
+    await page.click('#btn-en');
+    await page.click('[data-category="Veterans"]');
+    await page.waitForTimeout(200);
+    check('the Veterans tile shows only veteran listings', (await page.locator('.card').count()) === 1 && /Veterans Office/.test(await page.locator('.card').first().innerText()));
+    await page.click('[data-category="Veterans"]');
+    await page.fill('#search', 'sober');
+    await page.waitForTimeout(400);
+    check('a search for "sober" finds the Sobriety listing', /Recovery Meeting/.test(await page.locator('.card').first().innerText()));
+    await page.fill('#search', 'veteran');
+    await page.waitForTimeout(400);
+    check('a search for "veteran" finds the Veterans listing', /Veterans Office/.test(await page.locator('.card').first().innerText()));
+    check('no errors (veterans and sobriety tiles)', problems.length === 0, problems.join(' | '));
+    await context.close();
+  }
+
   // Analytics off: with the shipped (blank) ID nothing is loaded or sent.
   console.log('Browser checks: analytics off');
   if (SHIPPED_GA_ID === '') {

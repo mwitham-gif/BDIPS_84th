@@ -40,7 +40,7 @@ Row 1 holds these headers. Only `name` is required. Spanish columns fall back to
 
 `name`, `name_es`, `category`, `description`, `description_es`, `address`, `address_es`, `phone`, `website`, `hours`, `hours_es`, `notes`, `notes_es`, `tags`, `tags_es`
 
-Valid `category` values: Food, Mental, Rental, Legal, Benefits, Transportation, Education, Employment, Childcare, Youth, Seniors, Housing, Disability, Medical, Domestic Violence, Other.
+Valid `category` values: Food, Mental, Rental, Legal, Benefits, Transportation, Education, Employment, Childcare, Youth, Seniors, Housing, Disability, Medical, Domestic Violence, Veterans, Sobriety, Other.
 
 Only list services within reach of the 84th Street area (ZIP 90003 and nearby). Do not add listings that identify or single out BDIPS residents.
 
