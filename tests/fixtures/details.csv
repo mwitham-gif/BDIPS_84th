@@ -1,0 +1,3 @@
+name,name_es,category,description,description_es,address,address_es,phone,website,hours,hours_es,notes,notes_es,tags,tags_es,serves,serves_es,cost,cost_es,access,access_es,bring,bring_es
+Example Housing Help,Ayuda de Vivienda de Ejemplo,Housing,Help finding an apartment.,Ayuda para encontrar apartamento.,Online,En línea,(323) 555-0120,https://example.org/housing,Mon–Fri 9am–5pm,lun–vie 9 a. m.–5 p. m.,,,,,Adults with low income,Adultos con bajos ingresos,Free,Gratis,Call for an appointment,Llame para una cita,Photo ID and proof of income,Identificación con foto y comprobante de ingresos
+Example Plain Listing,Listado Simple de Ejemplo,Other,No extra details here.,Sin detalles adicionales.,Online,En línea,(323) 555-0121,https://example.org/plain,,,,,,,,,,,,,,
