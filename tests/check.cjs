@@ -90,6 +90,25 @@ function staticChecks() {
   check('report emails go to b.overton@bdips.org', /const REPORT_EMAIL = 'b\.overton@bdips\.org';/.test(app));
   check('the link checker reports to b.overton@bdips.org and names this site', /const REPORT_TO = 'b\.overton@bdips\.org';/.test(read('tools/link-checker.gs')) && /const GUIDE_URL = 'https:\/\/mwitham-gif\.github\.io\/BDIPS_84th\/';/.test(read('tools/link-checker.gs')));
   check('the page names this site in its canonical, og:url and og:image', ['rel="canonical" href', 'property="og:url" content', 'property="og:image" content'].every(key => new RegExp(key + '="https://mwitham-gif\\.github\\.io/BDIPS_84th/').test(html)));
+  // Social card: a 1200x630 image with its size and description declared.
+  const cardPath = path.join(ROOT, 'social_card.png');
+  const cardBytes = fs.existsSync(cardPath) ? fs.readFileSync(cardPath) : Buffer.alloc(0);
+  check('social_card.png is a 1200x630 PNG', cardBytes.length > 24 && cardBytes.toString('latin1', 1, 4) === 'PNG' && cardBytes.readUInt32BE(16) === 1200 && cardBytes.readUInt32BE(20) === 630);
+  check('og:image and twitter:image point at social_card.png, with width, height and alt',
+    /property="og:image" content="https:\/\/mwitham-gif\.github\.io\/BDIPS_84th\/social_card\.png"/.test(html) && /name="twitter:image" content="https:\/\/mwitham-gif\.github\.io\/BDIPS_84th\/social_card\.png"/.test(html)
+      && /property="og:image:width" content="1200"/.test(html) && /property="og:image:height" content="630"/.test(html)
+      && /property="og:image:alt" content="[^"]{20,}"/.test(html) && /name="twitter:image:alt" content="[^"]{20,}"/.test(html));
+  const imgTags = [...(html + app).matchAll(/<img\b[^>]*>/g)].map(m => m[0]);
+  check('every <img> has an alt attribute', imgTags.length > 0 && imgTags.every(tag => /\balt=/.test(tag)), imgTags.filter(tag => !/\balt=/.test(tag)).join(' | '));
+  check('the header logo has a meaningful alt', /<img id="header-logo"[^>]*alt="[^"]{10,}"/.test(html));
+  check('the footer note, Last verified line and emergency line exist in the page', ['footer-privacy', 'footer-verified', 'emergency-line'].every(id => html.includes(`id="${id}"`)));
+  check('LAST_VERIFIED is set to a YYYY-MM month in the CONFIG block', /^const LAST_VERIFIED = '20\d\d-(0[1-9]|1[0-2])';/m.test(app));
+  {
+    // The link checker's own tests (against a local server, no internet).
+    const { spawnSync } = require('child_process');
+    const run = spawnSync(process.execPath, [path.join(ROOT, 'tests', 'check-links.cjs'), '--self-test'], { encoding: 'utf8', timeout: 60000 });
+    check('the link checker passes its own self-test', run.status === 0, (run.stdout || '').split('\n').filter(line => /FAIL/.test(line)).join(' | ') + (run.stderr || ''));
+  }
   check('no email address is shown to visitors (no mailto: in the page or its scripts)', !/mailto:\s*[a-z]/i.test(html) && !/href="mailto:[^$]/.test(app) && !/footer-contact/.test(html + app));
 
   // No other site's analytics ID, and no leftover names from the site this was copied from.
@@ -363,6 +382,47 @@ async function browserChecks() {
     await page.waitForTimeout(400);
     check('search finds words that appear only in a detail line', (await page.locator('.card').count()) === 1);
     check('no errors (detail lines)', problems.length === 0, problems.join(' | '));
+    await context.close();
+  }
+
+  // Emergency line, footer privacy note, Last verified date and image alts, in both languages.
+  console.log('Browser checks: emergency line and footer');
+  {
+    const { context, page, problems } = await openWith('tests/fixtures/sample.csv', '', { analytics: false });
+    const expected = {
+      en: { emergency: 'In an emergency call 911. For crisis support call or text 988.', privacy: 'We do not collect names or what you type into search. We count overall visits and clicks to improve this guide.', verified: /^Last verified: [A-Z][a-z]+ 20\d\d$/, logo: 'Better Days Integrated Programs logo' },
+      es: { emergency: 'En una emergencia llame al 911. Para apoyo en una crisis llame o envíe un mensaje de texto al 988.', privacy: 'No recopilamos nombres ni lo que usted escribe en la búsqueda. Contamos las visitas y los clics en general para mejorar esta guía.', verified: /^Última verificación: [a-záéíóú]+ de 20\d\d$/, logo: 'Logotipo de Better Days Integrated Programs' },
+    };
+    for (const l of ['en', 'es']) {
+      await page.click(`#btn-${l}`);
+      await page.waitForTimeout(150);
+      const e = expected[l];
+      check(`the emergency line shows near the top (${l})`, (await page.locator('#emergency-line').innerText()).trim() === e.emergency);
+      const emergencyBox = await page.locator('#emergency-line').boundingBox();
+      const searchBox = await page.locator('#search').boundingBox();
+      check(`the emergency line sits above the search box (${l})`, emergencyBox && searchBox && emergencyBox.y < searchBox.y, JSON.stringify({ emergencyBox, searchBox }));
+      check(`the footer privacy note shows (${l})`, (await page.locator('#footer-privacy').innerText()).trim() === e.privacy);
+      check(`the Last verified line shows a month and year (${l})`, e.verified.test((await page.locator('#footer-verified').innerText()).trim()), await page.locator('#footer-verified').innerText());
+      check(`the header logo alt is in the language shown (${l})`, (await page.locator('#header-logo').getAttribute('alt')) === e.logo);
+    }
+    {
+      // The footer must show exactly the month set in the CONFIG block.
+      const [year, month] = fs.readFileSync(path.join(ROOT, 'app.js'), 'utf8').match(/^const LAST_VERIFIED = '(\d{4}-\d{2})';/m)[1].split('-');
+      const monthEn = new Date(Date.UTC(Number(year), Number(month) - 1, 1)).toLocaleString('en-US', { month: 'long', timeZone: 'UTC' });
+      await page.click('#btn-en');
+      await page.waitForTimeout(150);
+      check('the Last verified line shows the month set in LAST_VERIFIED', (await page.locator('#footer-verified').innerText()).trim() === `Last verified: ${monthEn} ${year}`, await page.locator('#footer-verified').innerText());
+    }
+    await page.click('#btn-en');
+    await page.fill('#search', 'groceries');
+    await page.waitForTimeout(300);
+    await page.evaluate(() => { window.print = () => {}; });
+    await page.locator('.card .btn-share').first().click();
+    await page.locator('.card [data-print-index]').first().click();
+    await page.waitForTimeout(300);
+    const qrAlt = await page.locator('.ps-qr').first().getAttribute('alt');
+    check('the printed QR code has a description', qrAlt === 'QR code that opens this guide', String(qrAlt));
+    check('no errors (emergency line and footer)', problems.length === 0, problems.join(' | '));
     await context.close();
   }
 

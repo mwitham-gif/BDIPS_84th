@@ -11,6 +11,11 @@ const REPORT_EMAIL = 'b.overton@bdips.org';
 // load" message, so it never shows demo data.
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSxE8c41InjUcFHULKEvdMpw8bUJkHVEVEAjdBxCopfVQaaOWnu2Ej9UbdrthsnBKJkznxAx-DP9S79/pub?output=csv';
 
+// The month the listings were last checked, shown in the footer as "Last
+// verified: November 2026". Format YYYY-MM. Update it only after someone has
+// actually re-checked the listings (see README, "Updating the Last verified date").
+const LAST_VERIFIED = '2026-11';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // END OF CONFIG
 // ─────────────────────────────────────────────────────────────────────────────
@@ -76,6 +81,11 @@ const T = {
     siteTitle: 'BDIPS Resource Guide',
     siteSub: 'Food, health care, work, housing and more, near 84th Street',
     footerTitle: 'Better Days Integrated Programs (BDIPS)',
+    footerPrivacy: 'We do not collect names or what you type into search. We count overall visits and clicks to improve this guide.',
+    lastVerified: date => `Last verified: ${date}`,
+    emergencyLine: 'In an emergency call 911. For crisis support call or text 988.',
+    logoAlt: 'Better Days Integrated Programs logo',
+    qrAlt: 'QR code that opens this guide',
     callAhead: 'Hours and services can change. Call ahead to check.',
     gridDisclaimer: 'Hours, services, and eligibility can change. Please call the agency before visiting to make sure they can help you.',
     reportBtn: 'Report incorrect information',
@@ -185,6 +195,11 @@ Thank you for keeping this resource up to date!`,
     siteTitle: 'Guía de Recursos de BDIPS',
     siteSub: 'Comida, salud, empleo, vivienda y más, cerca de la calle 84',
     footerTitle: 'Better Days Integrated Programs (BDIPS)',
+    footerPrivacy: 'No recopilamos nombres ni lo que usted escribe en la búsqueda. Contamos las visitas y los clics en general para mejorar esta guía.',
+    lastVerified: date => `Última verificación: ${date}`,
+    emergencyLine: 'En una emergencia llame al 911. Para apoyo en una crisis llame o envíe un mensaje de texto al 988.',
+    logoAlt: 'Logotipo de Better Days Integrated Programs',
+    qrAlt: 'Código QR que abre esta guía',
     callAhead: 'Los horarios y servicios pueden cambiar. Llame antes de ir.',
     gridDisclaimer: 'Los horarios, servicios y requisitos pueden cambiar. Por favor llame a la agencia antes de visitar para confirmar que pueden ayudarle.',
     reportBtn: 'Reportar información incorrecta',
@@ -787,7 +802,7 @@ async function printResources(list, { title, eyebrow, lede = '', single = false 
       ${list.map(resource => getPrintItemMarkup(resource, { single })).join('')}
     </div>
     <div class="ps-foot">
-      <img class="ps-qr" src="${PRINT_QR_SRC}" alt="">
+      <img class="ps-qr" src="${PRINT_QR_SRC}" alt="${escapeAttr(T[lang].qrAlt)}">
       <div class="ps-foot-text">
         <div class="ps-foot-title">${escapeHTML(T[lang].printScanTitle)}</div>
         <div>${escapeHTML(T[lang].printScanBody)}</div>
@@ -1071,6 +1086,13 @@ function getShareModeResource() {
 // Elements are addressed by id throughout. Guard every write so that markup
 // drifting from this script — a cached copy of either one, or an id renamed in
 // index.html — degrades to a no-op instead of throwing and halting page setup.
+// "2026-11" becomes "November 2026" (English) or "noviembre de 2026" (Spanish).
+function formatLastVerified(l) {
+  const when = new Date(`${LAST_VERIFIED}-01T12:00:00Z`);
+  if (isNaN(when)) return '';
+  return new Intl.DateTimeFormat(l === 'es' ? 'es' : 'en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(when);
+}
+
 function setText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value;
@@ -1951,6 +1973,10 @@ function setLang(l, { save = false } = {}) {
   updateStatusNotice(Boolean(notice && notice.classList.contains('show')));
 
   setText('footer-title', T[l].footerTitle);
+  setText('footer-privacy', T[l].footerPrivacy);
+  setText('footer-verified', T[l].lastVerified(formatLastVerified(l)));
+  setText('emergency-line', T[l].emergencyLine);
+  document.getElementById('header-logo')?.setAttribute('alt', T[l].logoAlt);
   setText('call-ahead', T[l].callAhead);
   setText('grid-disclaimer', T[l].gridDisclaimer);
   updateOfflineNotice();

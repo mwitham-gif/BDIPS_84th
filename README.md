@@ -29,9 +29,11 @@ Nothing a visitor types is stored by the site. Sheet text is treated as data, ne
 | `sw.js` | Service worker: saves the page and the last good copy of the sheet for offline use |
 | `manifest.webmanifest`, `icon-*.png`, `apple-touch-icon.png`, `favicon-32.png` | Install-to-home-screen support |
 | `bdips_logo_web.png` | Logo (from bdips.org) |
+| `social_card.png` | 1200×630 preview image shown when the link is shared (`og:image`, `twitter:image`) |
 | `flyer/bdips-qr.svg`, `flyer/bdips-qr.png` | QR code that points at the live site (SVG for print, PNG for documents) |
 | `tools/link-checker.gs` | Google Apps Script that checks every website in the sheet monthly and emails a report |
 | `tests/check.cjs` | Safety checks, with fixtures in `tests/fixtures/` |
+| `tests/check-links.cjs` | Report of broken or redirecting websites and badly formatted phone numbers (see "Checking links and phone numbers") |
 | `.github/workflows/checks.yml` | Runs the checks on every push and pull request |
 
 ## The Google Sheet
@@ -76,6 +78,23 @@ Only three events are sent:
 What a person types is never sent, in any parameter or in the page address. `link_url` has no query string or hash, and phone and email links are reduced to `tel:` and `mailto:`. Shared-link resource names never reach analytics. To watch events live, add `?ga_debug=1` to the site address and open GA4 DebugView; without it debug mode stays off. In debug mode each event also carries `debug_mode` and is printed to the browser console as `[analytics] …`, so it can be checked without Google Analytics open. Never reuse another organization's ID.
 
 In GA4 (Admin → Custom definitions), register `resource_name`, `resource_category`, `click_type`, `link_url`, `filter_name` and `search_term` as event-scoped custom dimensions, and `result_count` as an event-scoped custom metric.
+
+## Last verified date, emergency line and footer note
+
+- The footer shows **Last verified: <month year>**. It comes from `LAST_VERIFIED` in the CONFIG block at the top of `app.js` (format `YYYY-MM`, for example `'2026-11'`). **Update it only after someone has actually re-checked the listings**, since residents will read it as a promise. Change that one line, raise the `app.js` `?v=` number in `index.html`, and run the checks.
+- Under the header, every visitor sees "In an emergency call 911. For crisis support call or text 988." in English and Spanish. The text is `emergencyLine` in `T.en` / `T.es` in `app.js`.
+- The footer privacy note ("We do not collect names or what you type into search. We count overall visits and clicks to improve this guide.") is `footerPrivacy` in `T.en` / `T.es`. Keep it true: if analytics ever changes, change this note in the same pull request.
+- `social_card.png` is the preview image for shared links. It is 1200×630 pixels and shows the logo, the title and the subtitle. If the title or subtitle changes, make a new image at the same size and update the description in `og:image:alt` / `twitter:image:alt` in `index.html`.
+
+## Checking links and phone numbers
+
+```bash
+node tests/check-links.cjs                  # the live published sheet
+node tests/check-links.cjs --csv sheet.csv  # a CSV downloaded from the sheet (use this if Google is not reachable)
+node tests/check-links.cjs --offline        # format checks only, no requests
+```
+
+It checks that every phone number looks like `(323) 555-1212` (an extension like `x45` is allowed), that every website is a full `http(s)` address, and then visits each website. The report lists **format problems**, **broken** links, **redirecting** links (still working, worth updating), and sites that **refused the automatic check** (open those by hand). It also covers the fixed links in `index.html` and `app.js`. It only reports: it never changes the sheet or any file, so fix problems in the Google Sheet by hand. It exits with 1 when it finds a format problem or a broken link. It needs the internet, so it is not part of `tests/check.cjs`; its own tests (`--self-test`, run against a local server) are.
 
 ## Monthly link check
 

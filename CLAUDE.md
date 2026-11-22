@@ -30,8 +30,10 @@ There is no backend, no build step, no framework and no external fonts. It is st
 - `sw.js` - service worker: caches the page and the last good copy of the sheet so the guide opens offline
 - `manifest.webmanifest` and the `icon-*.png` files - install-to-home-screen support
 - `flyer/` - QR code (SVG for print, PNG for documents) that points at the live site
+- `social_card.png` - 1200x630 preview image for shared links (`og:image`, `twitter:image`)
 - `tools/link-checker.gs` - Google Apps Script that runs inside the sheet, checks every website monthly and emails a report
 - `tests/check.cjs` - safety checks, with fixtures in `tests/fixtures/`
+- `tests/check-links.cjs` - read-only report of broken or redirecting websites and badly formatted phone numbers. Needs the internet, so it is not part of `check.cjs`. It never edits anything.
 - `.github/workflows/checks.yml` - runs the checks on every push and pull request
 
 ## Where the data comes from
@@ -64,6 +66,7 @@ No contact email is shown to visitors. `TODO.md` lists what is still missing.
 - **Privacy.** What a person types into the search box is never sent to analytics or placed in a URL; only the number of results is reported. `link_url` never carries a query string or hash, and phone and email links are reduced to `tel:` and `mailto:`. Shared-link resource names never reach analytics. Collect no names, emails, phone numbers or anything about the visitor. The Quick exit button and "Browsing safely" note on domestic violence views must keep working.
 - **Bump asset versions together.** If a change edits `index.html` and `app.js` (or `styles.css`) together, raise the `?v=` numbers in `index.html` in the same commit.
 - **Both languages.** Any new visible text needs English and Spanish entries.
+- **Footer and top-of-page text.** The 911/988 emergency line, the footer privacy note and the "Last verified" date are fixed parts of every page. `LAST_VERIFIED` (CONFIG block in `app.js`) is changed only after the listings have really been re-checked. Keep the privacy note true to what analytics does. Every `<img>` needs a meaningful `alt`.
 - **Run the checks** before opening a pull request: `npm install --no-save playwright@1.56.1`, `npx playwright install chromium`, then `node tests/check.cjs`. The Actions workflow runs the same file. The test server serves the site under the repository name, so keep that path in sync if the repository is ever renamed.
 
 ## Working rules (set by the owner)
