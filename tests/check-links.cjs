@@ -70,10 +70,14 @@ function readListings(csvText) {
 // ── Format checks (offline) ───────────────────────────────────────────────
 // Expected phone format: (323) 555-1212, optionally followed by " x123".
 const PHONE_FORMAT = /^\(\d{3}\) \d{3}-\d{4}( (x|ext\.?) ?\d{1,6})?$/;
+// Three-digit services that are real numbers on their own: 211 (community help),
+// 311, 411, 511, 611, 711, 811, 911 and 988 (suicide and crisis lifeline).
+const SHORT_CODES = ['211', '311', '411', '511', '611', '711', '811', '911', '988'];
 function checkPhone(value) {
   const v = value.trim();
   if (!v) return null;
   if (value !== v) return 'has spaces before or after the number';
+  if (/^\d{3}$/.test(v)) return SHORT_CODES.includes(v) ? null : `"${v}" is not a three-digit service number (allowed: ${SHORT_CODES.join(', ')})`;
   if (!PHONE_FORMAT.test(v)) return `"${v}" is not in the format (323) 555-1212`;
   const area = v[1], exchange = v[6];
   if ('01'.includes(area)) return `"${v}" has an area code starting with ${area}, which is not a real US area code`;
@@ -253,7 +257,7 @@ async function selfTest() {
     `Fine,(323) 555-1212,${base}/ok`, `Moved,(323) 555-1212,${base}/moved`, `Temp,(323) 555-1212,${base}/temp`,
     `Gone,(323) 555-1212,${base}/gone`, `Boom,(323) 555-1212,${base}/boom`, `Refuses,(323) 555-1212,${base}/refuse`,
     `NoHead,(323) 555-1212,${base}/nohead`, `Loop,(323) 555-1212,${base}/loop`,
-    'Dashes,323-555-1212,', 'Short,555-1212,', 'BadArea,(055) 555-1212,', 'BadExchange,(323) 155-1212,', 'Two,(323) 555-1212 or (323) 555-0000,',
+    'Dashes,323-555-1212,', 'Short,555-1212,', 'Info,211,', 'Lifeline,988,', 'Emergency,911,', 'NotAService,999,', 'TooShort,21,', 'TooLong,2111,', 'Parens,(211),', 'BadArea,(055) 555-1212,', 'BadExchange,(323) 155-1212,', 'Two,(323) 555-1212 or (323) 555-0000,',
     'Ext,(323) 555-1212 x45,', 'NoScheme,,www.example.org', 'Space,,https://exa mple.org', 'Js,,javascript:alert(1)', 'Plain,,http://example.org', 'Dotless,,https://intranet'].join('\n');
   const rep = await run({ csvText: csv, offline: false, timeout: 3000, concurrency: 4, allowLocal: true, includeStatic: false });
   server.close();
@@ -266,6 +270,10 @@ async function selfTest() {
     ['323-555-1212 is a format problem', bad.includes('Dashes')], ['555-1212 is a format problem', bad.includes('Short')],
     ['an area code starting with 0 is a format problem', bad.includes('BadArea')], ['a number starting with 1 after the area code is a format problem', bad.includes('BadExchange')],
     ['two numbers in one cell is a format problem', bad.includes('Two')], ['an extension is accepted', !bad.includes('Ext')],
+    ['three-digit service numbers 211, 988 and 911 are accepted', !bad.includes('Info') && !bad.includes('Lifeline') && !bad.includes('Emergency')],
+    ['a three-digit number that is not a service (999) is a format problem', bad.includes('NotAService')],
+    ['two- and four-digit numbers are format problems', bad.includes('TooShort') && bad.includes('TooLong')],
+    ['(211) in parentheses is a format problem', bad.includes('Parens')],
     ['a website without http(s) is a format problem', bad.includes('NoScheme')], ['a website with a space is a format problem', bad.includes('Space')],
     ['a javascript: link is a format problem', bad.includes('Js')], ['a dotless host is a format problem', bad.includes('Dotless')],
     ['http (not https) is only a warning', rep.warnings.some(w => /Plain/.test(w.where)) && !bad.includes('Plain')],
