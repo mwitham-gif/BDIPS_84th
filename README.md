@@ -93,7 +93,7 @@ node tests/check-links.cjs --csv sheet.csv  # a CSV downloaded from the sheet (u
 node tests/check-links.cjs --offline        # format checks only, no requests
 ```
 
-It checks that every phone number looks like `(323) 555-1212` (an extension like `x45` is allowed), that every website is a full `http(s)` address, and then visits each website. The report lists **format problems**, **broken** links, **redirecting** links (still working, worth updating), and sites that **refused the automatic check** (open those by hand). It also covers the fixed links in `index.html` and `app.js`. It only reports: it never changes the sheet or any file, so fix problems in the Google Sheet by hand. It exits with 1 when it finds a format problem or a broken link. It needs the internet, so it is not part of `tests/check.cjs`; its own tests (`--self-test`, run against a local server) are.
+It checks that every phone number looks like `(323) 555-1212` (an extension like `x45` is allowed; the three-digit numbers 211, 311, 411, 511, 611, 711, 811, 911 and 988 are accepted as they are), that every website is a full `http(s)` address, and then visits each website. The report lists **format problems**, **broken** links, **redirecting** links (still working, worth updating), and sites that **refused the automatic check** (open those by hand). It also covers the fixed links in `index.html` and `app.js`. It only reports: it never changes the sheet or any file, so fix problems in the Google Sheet by hand. It exits with 1 when it finds a format problem or a broken link. It needs the internet, so it is not part of `tests/check.cjs`; its own tests (`--self-test`, run against a local server) are.
 
 ## Monthly link check
 
