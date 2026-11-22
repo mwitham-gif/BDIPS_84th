@@ -166,8 +166,8 @@ async function browserChecks() {
   // analytics.js untouched; otherwise it runs with the test-only stub ID.
   // The SHEET_URL in app.js may be blank, so the sheet is served to whatever
   // address the page asks for, and a blank SHEET_URL is pointed at a test URL.
-  async function openWith(csvFile, query = '', { analytics = true } = {}) {
-    const context = await browser.newContext({ serviceWorkers: 'block' });
+  async function openWith(csvFile, query = '', { analytics = true, contextOptions = {} } = {}) {
+    const context = await browser.newContext({ serviceWorkers: 'block', ...contextOptions });
     const csv = csvFile ? fs.readFileSync(path.join(ROOT, csvFile), 'utf8') : '';
     await context.route(/docs\.google\.com/, route => csvFile
       ? route.fulfill({ body: csv, contentType: 'text/csv', headers: { 'access-control-allow-origin': '*' } })
@@ -310,6 +310,37 @@ async function browserChecks() {
     check('clicking the logo returns to the top of the page', reachedTop);
     check('no errors (logo button)', problems.length === 0, problems.join(' | '));
     await context.close();
+  }
+
+  // The language sticks: tapping ES or EN is remembered across reloads, and a
+  // first visit follows the phone's language.
+  console.log('Browser checks: language is remembered');
+  {
+    const first = await openWith('tests/fixtures/sample.csv', '', { analytics: false });
+    check('a first visit on an English phone opens in English', (await first.page.locator('html').getAttribute('lang')) === 'en');
+    await first.page.click('#btn-es');
+    await first.page.reload();
+    await first.page.waitForSelector('.card');
+    check('Spanish is still on after a reload', (await first.page.locator('html').getAttribute('lang')) === 'es' && (await first.page.locator('#btn-top').getAttribute('aria-label')) === 'Volver arriba');
+    check('the skip link and language label are in Spanish', (await first.page.locator('#skip-link').innerText()) === 'Saltar a la búsqueda' && (await first.page.locator('#lang-toggle').getAttribute('aria-label')) === 'Idioma');
+    await first.page.click('#btn-en');
+    await first.page.reload();
+    await first.page.waitForSelector('.card');
+    check('English is still on after choosing EN and reloading', (await first.page.locator('html').getAttribute('lang')) === 'en');
+    check('no errors (language memory)', first.problems.length === 0, first.problems.join(' | '));
+    await first.context.close();
+
+    const spanishPhone = await openWith('tests/fixtures/sample.csv', '', { analytics: false, contextOptions: { locale: 'es-US' } });
+    check('a first visit on a Spanish phone opens in Spanish', (await spanishPhone.page.locator('html').getAttribute('lang')) === 'es');
+    await spanishPhone.page.click('#btn-en');
+    await spanishPhone.page.reload();
+    await spanishPhone.page.waitForSelector('.card');
+    check('choosing EN on a Spanish phone beats the phone language', (await spanishPhone.page.locator('html').getAttribute('lang')) === 'en');
+    await spanishPhone.context.close();
+
+    const linked = await openWith('tests/fixtures/sample.csv', '?lang=en', { analytics: false, contextOptions: { locale: 'es-US' } });
+    check('a ?lang=en link beats the phone language', (await linked.page.locator('html').getAttribute('lang')) === 'en');
+    await linked.context.close();
   }
 
   // Detail lines: Who it serves, Cost, How to start and What to bring.

@@ -24,7 +24,9 @@ const MAX_CSV_BYTES = 500000;
 
 const T = {
   en: {
-    search: 'Search by need, provider, service, or keyword...',
+    search: 'Search by need or provider...',
+    skipLink: 'Skip to search',
+    languageLabel: 'Language',
     clearSearch: 'Clear',
     all: 'All',
     changeCategory: 'Change',
@@ -131,7 +133,9 @@ Anything else we should know:
 Thank you for keeping this resource up to date!`,
   },
   es: {
-    search: 'Buscar por necesidad, proveedor, servicio o palabra clave...',
+    search: 'Buscar ayuda o proveedor...',
+    skipLink: 'Saltar a la búsqueda',
+    languageLabel: 'Idioma',
     clearSearch: 'Borrar',
     all: 'Todo',
     changeCategory: 'Cambiar',
@@ -254,7 +258,21 @@ const urlParams = new URLSearchParams(window.location.search);
 const shareResourceKey = urlParams.get('share');
 const sharedCategoryKey = urlParams.get('category');
 const initialSearchQuery = urlParams.get('q') || '';
-const initialLang = urlParams.get('lang') === 'es' ? 'es' : 'en';
+const LANG_KEY = 'bdips-lang';
+
+// Which language to open in. Order: a ?lang= link, then the language this
+// visitor chose last time, then the phone's language, then English.
+function getStartingLang() {
+  const fromLink = urlParams.get('lang');
+  if (fromLink === 'es' || fromLink === 'en') return fromLink;
+  try {
+    const saved = window.localStorage.getItem(LANG_KEY);
+    if (saved === 'es' || saved === 'en') return saved;
+  } catch (error) { /* storage blocked: use the phone language */ }
+  const phoneLanguages = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''];
+  return /^es\b/i.test(phoneLanguages[0] || '') ? 'es' : 'en';
+}
+const initialLang = getStartingLang();
 
 // Category icons: Lucide (https://lucide.dev), ISC license. Inline so the
 // page makes no extra requests; drawn in each category's color via CSS.
@@ -820,7 +838,7 @@ window.addEventListener('afterprint', () => {
 document.addEventListener('click', event => {
   const langButton = event.target.closest('[data-lang]');
   if (langButton) {
-    setLang(langButton.dataset.lang);
+    setLang(langButton.dataset.lang, { save: true });
     closeShareMenus();
     return;
   }
@@ -1891,8 +1909,11 @@ function showLoading() {
     <div class="loading"><div class="spinner"></div><div>${escapeHTML(T[lang].loading)}</div></div>`);
 }
 
-function setLang(l) {
+function setLang(l, { save = false } = {}) {
   lang = l;
+  if (save) {
+    try { window.localStorage.setItem(LANG_KEY, l); } catch (error) { /* storage blocked */ }
+  }
   document.documentElement.lang = l;
   for (const [id, code] of [['btn-en', 'en'], ['btn-es', 'es']]) {
     const button = document.getElementById(id);
@@ -1908,6 +1929,8 @@ function setLang(l) {
   const siteTitle = document.getElementById('site-title');
   if (siteTitle && siteTitle.childNodes[0]) siteTitle.childNodes[0].textContent = T[l].siteTitle + ' ';
 
+  setText('skip-link', T[l].skipLink);
+  document.getElementById('lang-toggle')?.setAttribute('aria-label', T[l].languageLabel);
   setText('clear-search', T[l].clearSearch);
   const topButton = document.getElementById('btn-top');
   if (topButton) {
