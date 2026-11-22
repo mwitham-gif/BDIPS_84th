@@ -85,7 +85,7 @@ function staticChecks() {
 
   const app = read('app.js');
   check('website links are limited to http and https', /function normalizeWebsiteUrl[\s\S]*?\^https\?:\\\/\\\//.test(app));
-  check('the GA4 ID is blank (analytics off) or a G- measurement ID', /^G-[A-Z0-9]{6,12}$|^$/.test(SHIPPED_GA_ID), JSON.stringify(SHIPPED_GA_ID));
+  check('analytics reports to the BDIPS GA4 property only', SHIPPED_GA_ID === 'G-95HD1P3GLD', JSON.stringify(SHIPPED_GA_ID));
   check('index.html has no static analytics tag or ID', !/gtag|googletagmanager\.com\/gtag|G-[A-Z0-9]{8,}/.test(html.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, '')));
   check('report emails go to b.overton@bdips.org', /const REPORT_EMAIL = 'b\.overton@bdips\.org';/.test(app));
   check('the link checker reports to b.overton@bdips.org and names this site', /const REPORT_TO = 'b\.overton@bdips\.org';/.test(read('tools/link-checker.gs')) && /const GUIDE_URL = 'https:\/\/mwitham-gif\.github\.io\/BDIPS_84th\/';/.test(read('tools/link-checker.gs')));
@@ -124,7 +124,7 @@ function listTextFiles(dir) {
 const SITE_TITLE = 'Resource Guide · Better Days Integrated Programs';
 
 // Analytics checks run against a made-up stub ID, injected into analytics.js
-// by the browser test only. The shipped file keeps its own (blank) ID.
+// by the browser test only. The shipped file keeps BDIPS's real ID.
 const TEST_GA_ID = 'G-TESTSTUB01';
 
 // ── Part 2: browser checks ────────────────────────────────────────────────
@@ -162,8 +162,9 @@ async function browserChecks() {
   if (process.env.CHROMIUM_PATH) launchOptions.executablePath = process.env.CHROMIUM_PATH;
   const browser = await chromium.launch(launchOptions);
 
-  // csvFile null = the sheet is down. analytics false = run the shipped
-  // analytics.js untouched; otherwise it runs with the test-only stub ID.
+  // csvFile null = the sheet is down. analytics false = analytics.js with a
+  // blank ID (analytics off); 'shipped' = the real file untouched; otherwise
+  // (the default) it runs with the test-only stub ID.
   // The SHEET_URL in app.js may be blank, so the sheet is served to whatever
   // address the page asks for, and a blank SHEET_URL is pointed at a test URL.
   async function openWith(csvFile, query = '', { analytics = true, contextOptions = {} } = {}) {
@@ -177,9 +178,9 @@ async function browserChecks() {
       if (csvFile && /const SHEET_URL = '';/.test(source)) source = source.replace("const SHEET_URL = '';", "const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/TEST/pub?output=csv';");
       route.fulfill({ body: source, contentType: 'text/javascript' });
     });
-    if (analytics) {
+    if (analytics !== 'shipped') {
       await context.route(/\/analytics\.js(\?|$)/, route => route.fulfill({
-        body: fs.readFileSync(path.join(ROOT, 'analytics.js'), 'utf8').replace(/var GA_MEASUREMENT_ID = '[^']*';/, `var GA_MEASUREMENT_ID = '${TEST_GA_ID}';`),
+        body: fs.readFileSync(path.join(ROOT, 'analytics.js'), 'utf8').replace(/var GA_MEASUREMENT_ID = '[^']*';/, `var GA_MEASUREMENT_ID = '${analytics ? TEST_GA_ID : ''}';`),
         contentType: 'text/javascript',
       }));
     }
@@ -268,20 +269,18 @@ async function browserChecks() {
       return second.page.evaluate(() => (window.dataLayer || []).map(entry => Array.from(entry))
         .filter(entry => entry[0] === 'event' && entry[1] === 'resource_search').map(entry => entry[2].search_term));
     };
-    for (const term of ['domestic violence', 'deportation', 'my number is 310 555 1212', 'me@example.com', 'parole officer', 'rehab near me']) {
+    for (const term of ['domestic violence', 'deportation', 'my number is 310 555 1212', 'me@example.com', 'parole officer', 'rehab near me', 'groceries', 'zzqxv nothing']) {
       const sent = await searches(term);
-      check(`sensitive search is withheld: "${term}"`, sent[sent.length - 1] === '(withheld)', `sent: ${sent[sent.length - 1]}`);
+      check(`a search for "${term}" is reported as (withheld)`, sent[sent.length - 1] === '(withheld)', `sent: ${sent[sent.length - 1]}`);
     }
-    const sent = await searches('groceries');
-    check('an ordinary search is still counted', sent[sent.length - 1] === 'groceries');
-    await searches('zzqxv nothing');
-    const empty = await second.page.evaluate(() => (window.dataLayer || []).map(entry => Array.from(entry))
-      .filter(entry => entry[0] === 'event' && entry[1] === 'search_no_results').map(entry => entry[2].search_term));
-    check('a search that finds nothing is reported as such', empty[empty.length - 1] === 'zzqxv nothing', `sent: ${empty.join(', ')}`);
-    await searches('asylum zzqxv');
-    const emptySensitive = await second.page.evaluate(() => (window.dataLayer || []).map(entry => Array.from(entry))
-      .filter(entry => entry[0] === 'event' && entry[1] === 'search_no_results').map(entry => entry[2].search_term));
-    check('a sensitive search that finds nothing is still withheld', emptySensitive[emptySensitive.length - 1] === '(withheld)');
+    const everything = await second.page.evaluate(() => JSON.stringify((window.dataLayer || []).map(entry => Array.from(entry))));
+    check('no word a person typed appears anywhere in what analytics receives',
+      !/parole|rehab|groceries|zzqxv|deportation|310 555|me@example/i.test(everything), everything.slice(0, 300));
+    check('no search_no_results event is sent', !/search_no_results/.test(everything));
+    const lastSearch = await second.page.evaluate(() => (window.dataLayer || []).map(entry => Array.from(entry))
+      .filter(entry => entry[0] === 'event' && entry[1] === 'resource_search').map(entry => entry[2]).pop());
+    check('a search sends only search_term and a numeric result_count',
+      Boolean(lastSearch) && Object.keys(lastSearch).sort().join() === 'result_count,search_term' && typeof lastSearch.result_count === 'number', JSON.stringify(lastSearch));
 
     await second.page.fill('#search', '');
     await second.page.click('[data-category="Domestic Violence"]');
@@ -290,7 +289,7 @@ async function browserChecks() {
     await second.page.click('.card .btn-web');
     const click = await second.page.evaluate(() => (window.dataLayer || []).map(entry => Array.from(entry)).filter(entry => entry[1] === 'resource_click').pop());
     check('a click on a domestic violence listing is counted with its name and link',
-      Boolean(click) && click[2].resource_name !== '(withheld)' && /^https:\/\//.test(click[2].link_url), JSON.stringify(click && click[2]));
+      Boolean(click) && click[2].resource_name !== '(withheld)' && /^https:\/\/[^?#]*$/.test(click[2].link_url), JSON.stringify(click && click[2]));
     check('no errors (privacy checks)', problems.length === 0 && second.problems.length === 0, [...problems, ...second.problems].join(' | '));
     await second.context.close();
   }
@@ -409,9 +408,9 @@ async function browserChecks() {
     await context.close();
   }
 
-  // Analytics off: with the shipped (blank) ID nothing is loaded or sent.
+  // Analytics off: with a blank ID nothing is loaded or sent.
   console.log('Browser checks: analytics off');
-  if (SHIPPED_GA_ID === '') {
+  {
     const { context, page, problems } = await openWith('tests/fixtures/sample.csv', '', { analytics: false });
     await page.fill('#search', 'groceries');
     await page.waitForTimeout(1800);
@@ -422,8 +421,50 @@ async function browserChecks() {
     check('with a blank ID the fixed page title still holds', (await page.title()) === SITE_TITLE);
     check('no errors (analytics off)', problems.length === 0, problems.join(' | '));
     await context.close();
-  } else {
-    console.log('  (skipped: analytics ID is set)');
+  }
+
+  // The shipped analytics.js, untouched: the Google tag, the debug switch and the three events.
+  console.log('Browser checks: Google tag (shipped file)');
+  {
+    const entries = page => page.evaluate(() => (window.dataLayer || []).map(entry => Array.from(entry)));
+    const plain = await openWith('tests/fixtures/sample.csv', '', { analytics: 'shipped' });
+    const tagScripts = await plain.page.evaluate(() => Array.from(document.scripts).map(s => s.src).filter(src => /googletagmanager/.test(src)));
+    check('the Google tag loads once, with the BDIPS ID', tagScripts.length === 1 && tagScripts[0] === 'https://www.googletagmanager.com/gtag/js?id=G-95HD1P3GLD', tagScripts.join(' | '));
+    const headScripts = await plain.page.evaluate(() => document.head.querySelectorAll('script[src*="analytics.js"]').length);
+    check('analytics.js is included once, in the head', headScripts === 1);
+    const config = (await entries(plain.page)).find(entry => entry[0] === 'config');
+    check('the tag is configured for the BDIPS ID with signals and ad personalization off',
+      Boolean(config) && config[1] === 'G-95HD1P3GLD' && config[2].allow_google_signals === false && config[2].allow_ad_personalization_signals === false, JSON.stringify(config));
+    check('debug mode is off without the switch', Boolean(config) && !('debug_mode' in config[2]), JSON.stringify(config && config[2]));
+    check('the page title is the fixed site title', (await plain.page.title()) === 'Resource Guide · Better Days Integrated Programs');
+
+    // Events, with the real file.
+    await plain.page.click('#filters [data-category="Food"]');
+    await plain.page.click('#btn-es');
+    await plain.page.click('#filters [data-category="Medical"]');
+    const filters = (await entries(plain.page)).filter(entry => entry[0] === 'event' && entry[1] === 'filter_select').map(entry => entry[2]);
+    check('a category tap sends only filter_name, in English in both languages',
+      filters.length === 2 && filters.every(f => Object.keys(f).join() === 'filter_name') && filters[0].filter_name === 'Food support' && filters[1].filter_name === 'Medical care', JSON.stringify(filters));
+    await plain.page.click('#btn-en');
+    await plain.page.fill('#search', 'parole');
+    await plain.page.waitForTimeout(1800);
+    const dump = JSON.stringify(await entries(plain.page));
+    const search = (await entries(plain.page)).filter(entry => entry[0] === 'event' && entry[1] === 'resource_search').map(entry => entry[2]).pop();
+    check('a search for "parole" sends search_term as (withheld) and a numeric result_count',
+      Boolean(search) && search.search_term === '(withheld)' && typeof search.result_count === 'number', JSON.stringify(search));
+    check('the word "parole" appears nowhere in what analytics receives', !/parole/i.test(dump));
+    check('the word "parole" appears in no request address', !plain.context.requestsSeen.some(url => /parole/i.test(decodeURIComponent(url))), plain.context.requestsSeen.filter(url => /parole/i.test(url)).join(' | '));
+    const sentEvents = [...new Set((await entries(plain.page)).filter(entry => entry[0] === 'event').map(entry => entry[1]))];
+    check('only the three agreed events are ever sent', sentEvents.length > 0 && sentEvents.every(name => ['resource_click', 'filter_select', 'resource_search'].includes(name)), sentEvents.join());
+    check('no errors (Google tag)', plain.problems.length === 0, plain.problems.join(' | '));
+    await plain.context.close();
+
+    const debug = await openWith('tests/fixtures/sample.csv', '?ga_debug=1', { analytics: 'shipped' });
+    const debugConfig = (await entries(debug.page)).find(entry => entry[0] === 'config');
+    check('?ga_debug=1 turns debug mode on', Boolean(debugConfig) && debugConfig[2].debug_mode === true, JSON.stringify(debugConfig && debugConfig[2]));
+    check('the debug switch is not reported as part of the page address', Boolean(debugConfig) && !/ga_debug/.test(debugConfig[2].page_location), debugConfig && debugConfig[2].page_location);
+    check('no errors (Google tag, debug)', debug.problems.length === 0, debug.problems.join(' | '));
+    await debug.context.close();
   }
 
   // The sheet cannot load: a plain message, no email address, still safe.
@@ -516,15 +557,25 @@ async function browserChecks() {
       const card = page.locator('.card').first();
       const expected = await card.getAttribute('data-track-name');
       expectedNames[l] = expected;
-      for (const [selector, type] of [['.btn-call', 'call'], ['.btn-web', 'website'], ['.btn-report', 'report']]) {
+      for (const [selector, type] of [['.btn-call', 'call'], ['.btn-web', 'website']]) {
         await card.locator(selector).click();
         const params = await lastClick();
         check(`a ${type} click sends every parameter (${l})`, complete(params) && params.click_type === type && params.resource_name === expected, JSON.stringify(params));
+        const urlOk = type === 'call' ? params.link_url === 'tel:' : /^https?:\/\/[^?#]+$/.test(params.link_url);
+        check(`a ${type} click sends a link_url with no number, query or hash (${l})`, urlOk, JSON.stringify(params));
       }
+      const mapCard = page.locator('.card:has(.addr-link)').first();
+      const mapName = await mapCard.getAttribute('data-track-name');
+      await mapCard.locator('.addr-link').click();
+      const directions = await lastClick();
+      check(`a directions click is counted with no address in the link (${l})`,
+        complete(directions) && directions.click_type === 'directions' && directions.resource_name === mapName && /^https:\/\/www\.google\.com\/maps\/[^?#]*$/.test(directions.link_url), JSON.stringify(directions));
+      const countClicks = () => page.evaluate(() => (window.dataLayer || []).filter(entry => entry[0] === 'event' && entry[1] === 'resource_click').length);
+      const beforeUncounted = await countClicks();
+      await card.locator('.btn-report').click();
       await card.locator('.btn-share').click();
       await card.locator('a.share-option').click();
-      const shared = await lastClick();
-      check(`a share-by-email click is told apart from contacting the listing (${l})`, complete(shared) && shared.click_type === 'share_email', JSON.stringify(shared));
+      check(`report and share-by-email links are not counted (${l})`, (await countClicks()) === beforeUncounted);
       check(`the footer shows the organization and no email address (${l})`,
         /Better Days Integrated Programs/.test(await page.locator('footer').innerText()) && (await page.locator('footer a, #footer-contact').count()) === 0);
       await page.locator('.card .btn-web').first().click({ button: 'middle' });

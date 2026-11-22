@@ -11,7 +11,7 @@ Open items before the BDIPS Resource Guide is ready for residents. Owner decisio
 
 ## Needs confirmation
 
-- [ ] **Analytics choice (owner).** The site currently sends **no analytics**. If BDIPS wants visit counts, the organization creates its own GA4 property and sends the measurement ID (`G-…`). Then set `GA_MEASUREMENT_ID` in `analytics.js` (one line). Do not reuse any other site's ID.
+- [ ] **Analytics review (owner).** The site reports to a GA4 property (`G-95HD1P3GLD`) created by the owner. Before launch, BDIPS should see what it collects (see the README, Analytics) and approve it. At handoff, add a BDIPS Google account as Administrator on the GA4 account. The ID does not change.
 - [ ] **Emails (owner).** Confirm `b.overton@bdips.org` as the address for "Report outdated info" emails (`REPORT_EMAIL` in `app.js`) and for the monthly link-check report (`REPORT_TO` in `tools/link-checker.gs`). No contact email is shown to visitors.
 - [ ] **Link checker.** Install `tools/link-checker.gs` in the sheet once it has listings (README, "Monthly link check"). It only sends mail when someone runs it.
 - [ ] **Logo and colors.** The logo comes from bdips.org. Confirm the colors are right: the guide uses a darker version of the logo blue so text stays readable.

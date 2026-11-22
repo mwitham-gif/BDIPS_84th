@@ -25,7 +25,7 @@ Nothing a visitor types is stored by the site. Sheet text is treated as data, ne
 | `index.html` | Page shell, metadata, Content Security Policy |
 | `styles.css` | Design, responsive layout, accessibility states |
 | `app.js` | Sheet loading, search, filters, sharing, printing, English and Spanish text. The **CONFIG block at the top** holds the sheet link and the report email |
-| `analytics.js` | Optional Google Analytics 4. The **CONFIG block at the top** holds the measurement ID; blank means no analytics at all |
+| `analytics.js` | Google Analytics 4. The **CONFIG block at the top** holds the measurement ID; blank means no analytics at all |
 | `sw.js` | Service worker: saves the page and the last good copy of the sheet for offline use |
 | `manifest.webmanifest`, `icon-*.png`, `apple-touch-icon.png`, `favicon-32.png` | Install-to-home-screen support |
 | `bdips_logo_web.png` | Logo (from bdips.org) |
@@ -61,9 +61,21 @@ The site is served by GitHub Pages from the `main` branch (Settings > Pages > De
 
 When a change edits `index.html` together with `app.js` or `styles.css`, raise the `?v=` numbers in `index.html` in the same commit so phones do not keep old copies.
 
-## Analytics (off by default)
+## Analytics
 
-The site sends no analytics until `GA_MEASUREMENT_ID` in `analytics.js` is set to BDIPS's own GA4 measurement ID. With it blank, no Google script is loaded and no event is recorded. Sensitive searches (abuse, immigration status, self-harm, sexual or reproductive health, substance use, criminal-justice history, emails and phone numbers) are always reported as `(withheld)`, and shared-link resource names never reach analytics. Never reuse another organization's ID.
+The site reports to BDIPS's own GA4 property, set by `GA_MEASUREMENT_ID` in `analytics.js`. Blank the ID and no Google script is loaded and no event is recorded. Google signals and ad personalization are off, and no other Google product or ad code is used.
+
+Only three events are sent:
+
+| Event | When | Parameters |
+|---|---|---|
+| `resource_click` | Someone taps a listing's Call, website or address (directions) button | `resource_name`, `resource_category`, `click_type` (`call`, `website` or `directions`), `link_url` |
+| `filter_select` | Someone taps a support-area tile | `filter_name` |
+| `resource_search` | Someone searches (1.5 seconds after typing stops) | `search_term` (always `(withheld)`), `result_count` |
+
+What a person types is never sent, in any parameter or in the page address. `link_url` has no query string or hash, and phone and email links are reduced to `tel:` and `mailto:`. Shared-link resource names never reach analytics. To watch events live, add `?ga_debug=1` to the site address and open GA4 DebugView; without it debug mode stays off. Never reuse another organization's ID.
+
+In GA4 (Admin → Custom definitions), register `resource_name`, `resource_category`, `click_type`, `link_url`, `filter_name` and `search_term` as event-scoped custom dimensions, and `result_count` as an event-scoped custom metric.
 
 ## Monthly link check
 

@@ -10,7 +10,7 @@ All owner-specific values live in two labeled **CONFIG blocks**, so most moves a
 | --- | --- | --- |
 | `SHEET_URL` (published sheet CSV link) | CONFIG block at the top of `app.js` | blank (not published yet) |
 | `REPORT_EMAIL` ("Report outdated info" inbox) | CONFIG block at the top of `app.js` | `b.overton@bdips.org` |
-| `GA_MEASUREMENT_ID` (GA4) | CONFIG block at the top of `analytics.js` | blank (analytics off) |
+| `GA_MEASUREMENT_ID` (GA4) | CONFIG block at the top of `analytics.js` | `G-95HD1P3GLD` (created by the owner) |
 | `REPORT_TO` and `GUIDE_URL` | top of `tools/link-checker.gs` | `b.overton@bdips.org`, current site address |
 | Site address | see step 5 | `https://mwitham-gif.github.io/BDIPS_84th/` |
 
@@ -52,10 +52,10 @@ When the address changes (new GitHub organization, new repository name, or a cus
 
 ## 6. Google Analytics 4 (optional)
 
-- [ ] BDIPS creates its own GA4 property (not shared with any other organization) and a Web data stream for the live site.
-- [ ] Paste its measurement ID (`G-…`) into `GA_MEASUREMENT_ID` in `analytics.js`. Leaving it blank keeps analytics off.
+- [ ] The GA4 property already exists (not shared with any other organization). To hand it over, add a BDIPS Google account as **Administrator** on the GA4 *account* (Admin → Account access management), then remove the previous owner. The measurement ID stays the same, so no code change is needed.
+- [ ] If BDIPS instead creates its own property, paste its measurement ID (`G-…`) into `GA_MEASUREMENT_ID` in `analytics.js`. Leaving it blank turns analytics off.
 - [ ] **Never reuse the measurement IDs of other organizations' sites** (`G-FT2K5G6SYR`, `G-S3BPY8ZED8`). Mixing them corrupts both sites' data. The safety checks fail if either appears in the repository.
-- [ ] Check the Realtime report on a test visit, and confirm searches about sensitive topics show as `(withheld)`.
+- [ ] Check the Realtime report on a test visit (add `?ga_debug=1` to the address to use DebugView), and confirm every search shows as `(withheld)`.
 
 ## 7. Final check
 
