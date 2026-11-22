@@ -19,6 +19,7 @@ const MAX_CSV_BYTES = 500000;
 
 // Recommended Google Sheet columns:
 // name, name_es, category, description, description_es, address, address_es, phone, website, hours, hours_es, notes, notes_es, tags, tags_es
+// Optional detail columns: serves, serves_es, cost, cost_es, access, access_es, bring, bring_es
 // The importer also accepts several human-friendly variations like "Name", "Resource Name", or "Phone Number".
 
 const T = {
@@ -51,6 +52,10 @@ const T = {
     addressLabel: 'Where',
     openInMaps: 'Open in Google Maps',
     hoursLabel: 'When',
+    servesLabel: 'Who it serves',
+    costLabel: 'Cost',
+    accessLabel: 'How to start',
+    bringLabel: 'What to bring',
     notesLabel: 'Details',
     noContact: 'Contact details unavailable',
     showMore: 'Read more',
@@ -153,6 +158,10 @@ Thank you for keeping this resource up to date!`,
     addressLabel: 'Dónde',
     openInMaps: 'Abrir en Google Maps',
     hoursLabel: 'Cuándo',
+    servesLabel: 'A quién atiende',
+    costLabel: 'Costo',
+    accessLabel: 'Cómo empezar',
+    bringLabel: 'Qué llevar',
     notesLabel: 'Detalles',
     noContact: 'Datos de contacto no disponibles',
     showMore: 'Leer más',
@@ -318,6 +327,14 @@ const FIELD_ALIASES = {
   hours_es: ['hours_es', 'hours es', 'horario', 'horario_es', 'horarios'],
   notes: ['notes', 'note', 'eligibility', 'requirements', 'instructions'],
   notes_es: ['notes_es', 'notes es', 'eligibility es', 'requirements es', 'notas', 'notas_es'],
+  serves: ['serves', 'who it serves', 'who_it_serves'],
+  serves_es: ['serves_es', 'serves es', 'a quien atiende'],
+  cost: ['cost', 'fees', 'price'],
+  cost_es: ['cost_es', 'cost es', 'costo', 'costo_es'],
+  access: ['access', 'how to start', 'how_to_start', 'how to access'],
+  access_es: ['access_es', 'access es', 'como empezar'],
+  bring: ['bring', 'what to bring', 'what_to_bring', 'documents'],
+  bring_es: ['bring_es', 'bring es', 'que llevar'],
   tags: ['tags', 'tag', 'highlights', 'quick tags', 'quick_tag', 'quick tags'],
   tags_es: ['tags_es', 'tags es', 'tag es', 'highlights es', 'etiquetas', 'etiquetas_es'],
 };
@@ -703,6 +720,10 @@ function getPrintItemMarkup(resource, { single = false } = {}) {
         ${single ? getPrintField(T[lang].printWebsite, website, 'ps-web') : ''}
         ${getPrintField(T[lang].addressLabel, getLocalizedValue(resource, 'address'))}
         ${getPrintField(T[lang].hoursLabel, getLocalizedValue(resource, 'hours'))}
+        ${getPrintField(T[lang].servesLabel, getLocalizedValue(resource, 'serves'), 'ps-wide')}
+        ${getPrintField(T[lang].costLabel, getLocalizedValue(resource, 'cost'))}
+        ${getPrintField(T[lang].accessLabel, getLocalizedValue(resource, 'access'), 'ps-wide')}
+        ${getPrintField(T[lang].bringLabel, getLocalizedValue(resource, 'bring'), 'ps-wide')}
         ${single ? '' : getPrintField(T[lang].printWebsite, website, 'ps-web ps-wide')}
         ${getPrintField(T[lang].notesLabel, getLocalizedValue(resource, 'notes'), 'ps-wide')}
       </div>
@@ -1165,6 +1186,14 @@ function renderResourceCard(resource, i, query = '') {
   const name = getLocalizedValue(resource, 'name');
   const desc = getLocalizedValue(resource, 'description');
   const notes = getLocalizedValue(resource, 'notes');
+  const detailRows = [
+    ['servesLabel', getLocalizedValue(resource, 'serves')],
+    ['costLabel', getLocalizedValue(resource, 'cost')],
+    ['accessLabel', getLocalizedValue(resource, 'access')],
+    ['bringLabel', getLocalizedValue(resource, 'bring')],
+  ].filter(([, text]) => text)
+    .map(([label, text]) => `<div class="card-detail"><span class="icon"></span><span class="card-detail-content"><span class="card-detail-label">${escapeHTML(T[lang][label])}</span><span class="card-detail-text">${highlightMatch(text, query)}</span></span></div>`)
+    .join('');
   // A phone cell like "Email hotline via website" has nothing to dial.
   const rawPhone = getField(resource, 'phone');
   const phone = rawPhone.replace(/\D/g, '').length >= 3 ? rawPhone : '';
@@ -1208,6 +1237,7 @@ function renderResourceCard(resource, i, query = '') {
         <div class="card-section-label">${escapeHTML(T[lang].detailsLabel)}</div>
         ${address ? `<div class="card-detail"><span class="icon"></span><span class="card-detail-content"><span class="card-detail-label">${escapeHTML(T[lang].addressLabel)}</span><span class="card-detail-text">${mapsHref ? `<a class="addr-link" href="${escapeAttr(mapsHref)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(`${address} – ${T[lang].openInMaps}`)}" title="${escapeAttr(T[lang].openInMaps)}">${highlightMatch(address, query)}</a>` : highlightMatch(address, query)}</span></span></div>` : ''}
         ${hours   ? `<div class="card-detail"><span class="icon"></span><span class="card-detail-content"><span class="card-detail-label">${escapeHTML(T[lang].hoursLabel)}</span><span class="card-detail-text">${highlightMatch(hours, query)}</span></span></div>` : ''}
+        ${detailRows}
         ${notes   ? `<div class="card-detail"><span class="icon"></span><span class="card-detail-content"><span class="card-detail-label">${escapeHTML(T[lang].notesLabel)}</span><span class="card-detail-text ${hasLongNotes && !notesExpanded ? 'compact' : ''}">${highlightMatch(notes, query)}</span>${hasLongNotes ? `<button class="card-more" type="button" data-toggle-section="notes" data-resource-name="${escapeAttr(encodedName)}">${escapeHTML(notesExpanded ? T[lang].showLess : T[lang].showMore)}</button>` : ''}</span></div>` : ''}
       </div>
       <div class="${actionClass}">
@@ -1531,6 +1561,7 @@ function getSearchText(resource) {
     const cat = normalizeCategory(resource);
     searchTextCache.set(resource, foldText([
       'name', 'name_es', 'description', 'description_es', 'notes', 'notes_es', 'tags', 'tags_es', 'address', 'address_es',
+      'serves', 'serves_es', 'cost', 'cost_es', 'access', 'access_es', 'bring', 'bring_es',
     ].map(key => getField(resource, key)).concat(CAT_LABELS.en[cat] || cat, CAT_LABELS.es[cat] || '').join(' \n ')));
   }
   return searchTextCache.get(resource);
