@@ -295,6 +295,30 @@ async function browserChecks() {
     await second.context.close();
   }
 
+  // Detail lines: Who it serves, Cost, How to start and What to bring.
+  console.log('Browser checks: detail lines');
+  {
+    const { context, page, problems } = await openWith('tests/fixtures/details.csv', '', { analytics: false });
+    for (const [l, labels, values] of [
+      ['en', ['Who it serves', 'Cost', 'How to start', 'What to bring'], ['Adults with low income', 'Free', 'Call for an appointment', 'Photo ID and proof of income']],
+      ['es', ['A quién atiende', 'Costo', 'Cómo empezar', 'Qué llevar'], ['Adultos con bajos ingresos', 'Gratis', 'Llame para una cita', 'Identificación con foto y comprobante de ingresos']],
+    ]) {
+      await page.click(`#btn-${l}`);
+      await page.waitForTimeout(200);
+      const text = await page.locator('.card', { hasText: /Housing Help|Vivienda de Ejemplo/ }).first().innerText();
+      check(`a card shows the four detail labels (${l})`, labels.every(label => text.toLowerCase().includes(label.toLowerCase())), text);
+      check(`a card shows the four detail values (${l})`, values.every(value => text.includes(value)), text);
+      const plain = await page.locator('.card', { hasText: /Plain Listing|Listado Simple/ }).first().innerText();
+      check(`a listing without details shows no empty detail labels (${l})`, !labels.some(label => plain.toLowerCase().includes(label.toLowerCase())), plain);
+    }
+    await page.click('#btn-en');
+    await page.fill('#search', 'proof of income');
+    await page.waitForTimeout(400);
+    check('search finds words that appear only in a detail line', (await page.locator('.card').count()) === 1);
+    check('no errors (detail lines)', problems.length === 0, problems.join(' | '));
+    await context.close();
+  }
+
   // Analytics off: with the shipped (blank) ID nothing is loaded or sent.
   console.log('Browser checks: analytics off');
   if (SHIPPED_GA_ID === '') {
