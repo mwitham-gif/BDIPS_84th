@@ -149,6 +149,20 @@
 
   @media (max-width: 500px) { .header-logo { height: 40px; } }
 
+  /* The logo is a button that returns to the top of the page. */
+  .logo-button {
+    display: block;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    line-height: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .logo-button:hover .header-logo { filter: brightness(0.95); }
+
   .lang-toggle {
     display: flex;
     background: rgba(255,255,255,0.13);

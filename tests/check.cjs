@@ -295,6 +295,23 @@ async function browserChecks() {
     await second.context.close();
   }
 
+  // The logo is a button that returns to the top of the page.
+  console.log('Browser checks: logo button');
+  {
+    const { context, page, problems } = await openWith('tests/fixtures/sample.csv', '', { analytics: false });
+    check('the logo is a button', (await page.locator('button#btn-top img.header-logo').count()) === 1);
+    check('the logo button is named in English', (await page.locator('#btn-top').getAttribute('aria-label')) === 'Back to top');
+    await page.click('#btn-es');
+    check('the logo button is named in Spanish', (await page.locator('#btn-top').getAttribute('aria-label')) === 'Volver arriba');
+    await page.evaluate(() => { document.body.style.minHeight = '3000px'; window.scrollTo(0, 1500); });
+    await page.waitForFunction(() => window.scrollY > 1000);
+    await page.click('#btn-top');
+    const reachedTop = await page.waitForFunction(() => window.scrollY === 0, null, { timeout: 5000 }).then(() => true).catch(() => false);
+    check('clicking the logo returns to the top of the page', reachedTop);
+    check('no errors (logo button)', problems.length === 0, problems.join(' | '));
+    await context.close();
+  }
+
   // Detail lines: Who it serves, Cost, How to start and What to bring.
   console.log('Browser checks: detail lines');
   {
