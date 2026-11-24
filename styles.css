@@ -1366,25 +1366,6 @@
 
   footer a { color: rgba(255,255,255,0.9); }
 
-  /* ── EMERGENCY LINE (under the header) ── */
-  .emergency-line {
-    width: calc(100% - 48px);   /* lines up with the search card below */
-    max-width: 992px;
-    margin: 12px auto 0;
-    padding: 10px 14px;
-    background: #fff4d6;
-    border-left: 4px solid var(--sun);
-    border-radius: 0 10px 10px 0;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.4;
-    color: var(--text);
-  }
-
-  @media (max-width: 480px) {
-    .emergency-line { width: calc(100% - 20px); }
-  }
-
   /* Footer note: the privacy line. */
   .footer-note {
     max-width: 640px;

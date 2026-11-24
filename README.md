@@ -79,9 +79,8 @@ What a person types is never sent, in any parameter or in the page address. `lin
 
 In GA4 (Admin → Custom definitions), register `resource_name`, `resource_category`, `click_type`, `link_url`, `filter_name` and `search_term` as event-scoped custom dimensions, and `result_count` as an event-scoped custom metric.
 
-## Emergency line and footer note
+## Footer note
 
-- Under the header, every visitor sees "In an emergency call 911. For crisis support call or text 988." in English and Spanish. The text is `emergencyLine` in `T.en` / `T.es` in `app.js`.
 - The footer privacy note ("We do not collect names or what you type into search. We count overall visits and clicks to improve this guide.") is `footerPrivacy` in `T.en` / `T.es`. Keep it true: if analytics ever changes, change this note in the same pull request.
 - `social_card.png` is the preview image for shared links. It is 1200×630 pixels and shows the logo, the title and the subtitle. If the title or subtitle changes, make a new image at the same size and update the description in `og:image:alt` / `twitter:image:alt` in `index.html`.
 
