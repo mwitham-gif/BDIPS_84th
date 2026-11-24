@@ -232,7 +232,7 @@ Thank you for keeping this resource up to date!`,
     shareMetaCommunity: 'Guía de recursos de BDIPS',
     shareMetaUpdated: 'Los detalles del proveedor pueden cambiar',
     shareMissingTitle: 'Este recurso compartido puede haber cambiado',
-    shareMissingBody: 'Es posible que el listado haya cambiado de nombre o se haya eliminado. Todavía puede buscar en el directorio completo opciones de apoyo actuales.',
+    shareMissingBody: 'Es posible que el listado haya cambiado de nombre o se haya eliminado. Aún puede buscar opciones de apoyo actuales en el directorio completo.',
     searchDirectory: 'Buscar en el directorio',
     reportSubject: name => `Información desactualizada: ${name}`,
     reportBody: name =>
@@ -246,7 +246,7 @@ Noté que la información de "${name}" en la Guía de Recursos de BDIPS puede es
 
 Algo más que debamos saber:
 
-Gracias por mantener este recurso actualizado!`,
+¡Gracias por mantener este recurso actualizado!`,
   }
 };
 
