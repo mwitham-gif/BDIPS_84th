@@ -579,6 +579,12 @@ async function browserChecks() {
     await page.waitForTimeout(200);
     check('food searches start with the Pantry Locator', /Pantry Locator/.test(await page.locator('.card-name').first().innerText()));
     await page.fill('#search', '');
+    await page.waitForTimeout(200);
+    await page.click('[data-category="Benefits"]');
+    await page.waitForTimeout(200);
+    check('the Benefits support area starts with the CalFresh, Medi-Cal and CalWORKs listing', /CalFresh, Medi-Cal and CalWORKs/.test(await page.locator('.card-name').first().innerText()), await page.locator('.card-name').allInnerTexts().then(names => names.join(' | ')));
+    await page.click('[data-category="Benefits"]');
+    await page.waitForTimeout(200);
     await page.click('#btn-es');
     await page.waitForTimeout(200);
     check('Spanish view shows Spanish hours', /lun–vie/.test(await page.locator('#grid').innerText()));

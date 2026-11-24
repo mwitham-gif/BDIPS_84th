@@ -1583,6 +1583,12 @@ const SEARCH_PINS = [
     category: 'Food',
     words: ['food', 'foods', 'pantry', 'pantries', 'food bank', 'groceries', 'grocery', 'hungry', 'hunger', 'meal', 'meals', 'eat', 'comida', 'comidas', 'alimento', 'alimentos', 'despensa', 'despensas', 'banco de alimentos', 'hambre', 'comer', 'mercado'],
   },
+  {
+    // Top of the Benefits support area only: no search words, so searches are not changed.
+    name: 'calfresh, medi-cal and calworks',
+    category: 'Benefits',
+    words: [],
+  },
 ];
 
 // Filler words that say nothing about the need ("I need help with rent").
