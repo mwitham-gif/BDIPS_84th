@@ -78,7 +78,6 @@ const T = {
     siteSub: 'Food, health care, work, housing and more, near 84th Street',
     footerTitle: 'Better Days Integrated Programs (BDIPS)',
     footerPrivacy: 'We do not collect names or what you type into search. We count overall visits and clicks to improve this guide.',
-    emergencyLine: 'In an emergency call 911. For crisis support call or text 988.',
     logoAlt: 'Better Days Integrated Programs logo',
     qrAlt: 'QR code that opens this guide',
     callAhead: 'Hours and services can change. Call ahead to check.',
@@ -191,7 +190,6 @@ Thank you for keeping this resource up to date!`,
     siteSub: 'Comida, salud, empleo, vivienda y más, cerca de la calle 84',
     footerTitle: 'Better Days Integrated Programs (BDIPS)',
     footerPrivacy: 'No recopilamos nombres ni lo que usted escribe en la búsqueda. Contamos las visitas y los clics en general para mejorar esta guía.',
-    emergencyLine: 'En una emergencia llame al 911. Para apoyo en una crisis llame o envíe un mensaje de texto al 988.',
     logoAlt: 'Logotipo de Better Days Integrated Programs',
     qrAlt: 'Código QR que abre esta guía',
     callAhead: 'Los horarios y servicios pueden cambiar. Llame antes de ir.',
@@ -1961,7 +1959,6 @@ function setLang(l, { save = false } = {}) {
 
   setText('footer-title', T[l].footerTitle);
   setText('footer-privacy', T[l].footerPrivacy);
-  setText('emergency-line', T[l].emergencyLine);
   document.getElementById('header-logo')?.setAttribute('alt', T[l].logoAlt);
   setText('call-ahead', T[l].callAhead);
   setText('grid-disclaimer', T[l].gridDisclaimer);

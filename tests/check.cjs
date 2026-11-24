@@ -101,7 +101,7 @@ function staticChecks() {
   const imgTags = [...(html + app).matchAll(/<img\b[^>]*>/g)].map(m => m[0]);
   check('every <img> has an alt attribute', imgTags.length > 0 && imgTags.every(tag => /\balt=/.test(tag)), imgTags.filter(tag => !/\balt=/.test(tag)).join(' | '));
   check('the header logo has a meaningful alt', /<img id="header-logo"[^>]*alt="[^"]{10,}"/.test(html));
-  check('the footer note and emergency line exist in the page, and there is no Last verified line', ['footer-privacy', 'emergency-line'].every(id => html.includes(`id="${id}"`)) && !/last verified|footer-verified|LAST_VERIFIED/i.test(html + app));
+  check('the footer note exists in the page, and there is no Last verified line', ['footer-privacy'].every(id => html.includes(`id="${id}"`)) &&!/last verified|footer-verified|LAST_VERIFIED/i.test(html + app));
   {
     // The link checker's own tests (against a local server, no internet).
     const { spawnSync } = require('child_process');
@@ -384,22 +384,18 @@ async function browserChecks() {
     await context.close();
   }
 
-  // Emergency line, footer privacy note and image alts, in both languages.
-  console.log('Browser checks: emergency line and footer');
+  // Footer privacy note and image alts, in both languages.
+  console.log('Browser checks: footer');
   {
     const { context, page, problems } = await openWith('tests/fixtures/sample.csv', '', { analytics: false });
     const expected = {
-      en: { emergency: 'In an emergency call 911. For crisis support call or text 988.', privacy: 'We do not collect names or what you type into search. We count overall visits and clicks to improve this guide.', logo: 'Better Days Integrated Programs logo' },
-      es: { emergency: 'En una emergencia llame al 911. Para apoyo en una crisis llame o envíe un mensaje de texto al 988.', privacy: 'No recopilamos nombres ni lo que usted escribe en la búsqueda. Contamos las visitas y los clics en general para mejorar esta guía.', logo: 'Logotipo de Better Days Integrated Programs' },
+      en: { privacy:'We do not collect names or what you type into search. We count overall visits and clicks to improve this guide.', logo: 'Better Days Integrated Programs logo' },
+      es: { privacy:'No recopilamos nombres ni lo que usted escribe en la búsqueda. Contamos las visitas y los clics en general para mejorar esta guía.', logo: 'Logotipo de Better Days Integrated Programs' },
     };
     for (const l of ['en', 'es']) {
       await page.click(`#btn-${l}`);
       await page.waitForTimeout(150);
       const e = expected[l];
-      check(`the emergency line shows near the top (${l})`, (await page.locator('#emergency-line').innerText()).trim() === e.emergency);
-      const emergencyBox = await page.locator('#emergency-line').boundingBox();
-      const searchBox = await page.locator('#search').boundingBox();
-      check(`the emergency line sits above the search box (${l})`, emergencyBox && searchBox && emergencyBox.y < searchBox.y, JSON.stringify({ emergencyBox, searchBox }));
       check(`the footer privacy note shows (${l})`, (await page.locator('#footer-privacy').innerText()).trim() === e.privacy);
       check(`there is no Last verified line (${l})`, (await page.locator('#footer-verified').count()) === 0 && !/verified|verificaci/i.test(await page.locator('footer').innerText()));
       check(`the header logo alt is in the language shown (${l})`, (await page.locator('#header-logo').getAttribute('alt')) === e.logo);
@@ -413,7 +409,7 @@ async function browserChecks() {
     await page.waitForTimeout(300);
     const qrAlt = await page.locator('.ps-qr').first().getAttribute('alt');
     check('the printed QR code has a description', qrAlt === 'QR code that opens this guide', String(qrAlt));
-    check('no errors (emergency line and footer)', problems.length === 0, problems.join(' | '));
+    check('no errors (footer)',problems.length === 0, problems.join(' | '));
     await context.close();
   }
 
